@@ -1,3 +1,5 @@
+package Sjavac;
+
 /**
  * wrong end of line format
  */

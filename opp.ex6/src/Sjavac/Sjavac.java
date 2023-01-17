@@ -1,3 +1,5 @@
+package Sjavac;
+
 import java.io.*;
 
 public class Sjavac {
@@ -26,12 +28,12 @@ public class Sjavac {
         }
         catch (EndOfLineException e){
             System.out.println(ILLEGAL_CODE);
-            System.out.println(e.getMessage());
+            System.err.println(e.getMessage());
         }
 
         catch(StartOfLineException e){
             System.out.println(ILLEGAL_CODE);
-            System.out.println("Illegal start of line");
+            System.err.println("Illegal start of line");
         }
     }
 

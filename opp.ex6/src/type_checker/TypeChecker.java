@@ -6,10 +6,13 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public interface VariableTypeChecker {
+public interface TypeChecker {
     HashMap<String,String>variableMap = new HashMap<>();
     String SEPARATE_LINE_REGEX = "/^([a-zA-Z_][a-zA-Z\\d_]*)\\s{1}(?:=\\s*([^,;]+))?\\s*,?\\s*;/gm";
     Pattern separateLinePattern = Pattern.compile(SEPARATE_LINE_REGEX);
+    String VALID_NAME_REGEX = "^(?!\\d)[a-zA-Z_][a-zA-Z\\d_]*$";
+    Pattern namePattern = Pattern.compile(VALID_NAME_REGEX);
+
 
     void checkValidity() throws InvalidTypeException;
 
@@ -31,5 +34,19 @@ public interface VariableTypeChecker {
         }
 
         return varList;
+    }
+
+    default void checkName(String name) throws InvalidTypeException {
+        Matcher matcher = namePattern.matcher(name);
+        if (!matcher.matches()) {
+            throw new InvalidTypeException();
+        }
+    }
+    default String trimLine(String line) {
+        if (line == null) {
+            return null;
+        }
+        line = line.replaceAll("\\s+", " ");
+        return line.trim();
     }
 }
