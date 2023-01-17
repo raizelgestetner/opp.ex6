@@ -1,20 +1,37 @@
 import java.io.*;
 
-public class Sjavac  {
-    public Sjavac(String fileName) throws FileNotFoundException {
-        try (InputStream inputFile = new FileInputStream(fileName)){
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputFile));
-            String line;
-            while ((line = reader.readLine())!=null){
+public class Sjavac {
 
-            }
-        }catch (IOException e){
-            System.err.println("Invalid file name");
+    private static final String INVALID_FILE_NAME = "Invalid file name";
+    private static final int LEGAL_CODE = 0;
+    private static final int ILLEGAL_CODE = 1;
+    private static final int IO_ERROR = 2;
+
+    public static void main(String[] fileName) {
+
+        try (InputStream inputFile = new FileInputStream(fileName[0])) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputFile));
+
+            // create parser to read file
+            Parser parser = new Parser(reader);
+            parser.readFile();
+
+
+            // print 0 if code is legal
+            System.out.println(LEGAL_CODE);
+        } catch (IOException e) {
+            System.out.println(IO_ERROR);
+            System.err.println(INVALID_FILE_NAME);
 
         }
-    }
+        catch (EndOfLineException e){
+            System.out.println(ILLEGAL_CODE);
+            System.out.println(e.getMessage());
+        }
 
-    public static void main(String[] args) {
-        System.out.println("test");
+        catch(StartOfLineException e){
+            System.out.println(ILLEGAL_CODE);
+            System.out.println("Illegal start of line");
+        }
     }
 }
