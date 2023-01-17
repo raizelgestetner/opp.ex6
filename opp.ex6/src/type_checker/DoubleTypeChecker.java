@@ -7,9 +7,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static type_checker.IntTypeChecker.namePattern;
-
-public class DoubleTypeChecker implements VariableTypeChecker {
+public class DoubleTypeChecker implements TypeChecker {
     private static final String VALID_VALUE_REGEX = "-?\\\\d+(\\\\.\\\\d+)?";
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
 

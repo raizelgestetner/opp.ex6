@@ -1,16 +1,18 @@
-import java.util.ArrayList;
+package Sjavac;
+
+import java.util.HashMap;
 
 public class Method {
 
     private String methodName ;
-    private ArrayList<Variable> methodParameters;
+    private HashMap<String,Variable> methodParameters;
 
     /**
      * constuctor
      * @param methodName name of method
      * @param methodParameters method parameters
      */
-    public Method(String methodName, ArrayList<Variable> methodParameters) {
+    public Method(String methodName, HashMap<String,Variable> methodParameters) {
         this.methodName = methodName;
         this.methodParameters = methodParameters;
     }
@@ -19,7 +21,7 @@ public class Method {
      * getter
      * @return arraylist of method parameters
      */
-    public ArrayList<Variable> getMethodParameters() {
+    public HashMap<String,Variable> getMethodParameters() {
         return methodParameters;
     }
 

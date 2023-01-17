@@ -1,6 +1,10 @@
+package Sjavac;
+
+import com.sun.jdi.InvalidTypeException;
+import type_checker.MethodChecker;
+
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,8 +13,9 @@ import java.util.regex.Pattern;
  * this class reads and parses the file
  */
 public class Parser {
+    public static final String REGEX_OPEN_PARENTHESIS = "\\(";
     private final BufferedReader reader;
-    private ArrayList<Method> methodsList = new ArrayList<>();
+    private HashMap<String, Method> methodsList = new HashMap<>();
     private HashMap<String, Variable> globalVariables = new HashMap<>();
 
 
@@ -18,10 +23,13 @@ public class Parser {
     private static final String REGEX_COMMENT = "^//.*$";
     private static final String INVALID_PREFIX_REGEX = "^[\\s]*[;{}][\\s]*$";
     private static final String VALID_END_OF_LINE_REGEX = ".*[;{}]$";
+    private static final String TYPE_PREFIX = "^\b(int|double|boolean|char|String|void|final|if|return)\b";
     private static final String METHOD_PREFIX = "void";
 
-    private static final String SPLIT_METHOD_LINE = "";
-
+    private static final String SPLIT_LINE_METHOD =
+            "^\\w+\\s+\\w+\\s*\\(([\\w\\s]+\\s+\\w+(,\\s*[\\w\\s]+\\s+\\w+)*)?\\)\\s*\\{\\s*$";//todo make sure 2
+    // todo backslashes work
+//
 
     /**
      * constructor
@@ -31,7 +39,7 @@ public class Parser {
     }
 
 
-    public void readFile() throws IOException, EndOfLineException, StartOfLineException {
+    public void readFile() throws IOException, EndOfLineException, StartOfLineException, IllegalMethodFormatException, InvalidTypeException {
         String line = reader.readLine();
         line = trimLine(line);
         while (line != null) {
@@ -69,13 +77,15 @@ public class Parser {
 
 
             line = reader.readLine();
-            line=trimLine(line);
+            line = trimLine(line);
         }
 
 
         // close stream
         reader.close();
     }
+
+
 
     /**
      * after checking that prefix and suffix of the line is valid this function checks that the content of the line is
@@ -84,19 +94,42 @@ public class Parser {
      *
      * @param line line to check
      */
-    private void checkLine(String line) {
+    private void checkLine(String line) throws IllegalMethodFormatException, InvalidTypeException {
         // todo check for method - if there is check that it is valid
-
-        if (line.startsWith(METHOD_PREFIX)) {
-
-            line.replaceAll(METHOD_PREFIX,"");
-            // split line to find method name and parameters
-            Method method = new Method();
-        }
-
+        checkMethodLine(line);
 
         // todo check that regular scope is valid
+
+        //todo check if/else
     }
+
+    private void checkMethodLine(String line) throws InvalidTypeException, IllegalMethodFormatException {
+        if (line.startsWith(METHOD_PREFIX)) {
+
+            line.replaceAll(METHOD_PREFIX, "");
+            // split line to find method name and parameters
+            Pattern pattern = Pattern.compile(SPLIT_LINE_METHOD);
+            Matcher matcher = pattern.matcher(line);
+            boolean throwException = true;
+            while (matcher.find()) {
+                String method_name = matcher.group(0).split(REGEX_OPEN_PARENTHESIS)[0].strip();
+                if (!methodsList.containsKey(method_name)) { //todo check that this is the correct method name
+
+                    MethodChecker methodChecker = new MethodChecker(matcher.group(1),numOfBrackets,
+                            method_name);
+                    methodChecker.checkValidity();
+                    methodsList.put(method_name, methodChecker.getMethod());
+
+
+                }
+
+            }
+            if(throwException){
+                throw new IllegalMethodFormatException();
+            }
+        }
+    }
+
 
     /**
      * this function removes extra white spaces from line
