@@ -17,6 +17,12 @@ public class MethodChecker implements TypeChecker {
     private static final String METHOD_NAME_REGEX = "^[a-zA-Z][\\w]*";
     private boolean throwException;
 
+    /**
+     * constructor
+     * @param line line to be checked
+     * @param scopeLevel scope level of method
+     * @param name name of method
+     */
     public MethodChecker(String line, int scopeLevel, String name) {
         this.params = line;
         this.methodName = name;
@@ -69,10 +75,18 @@ public class MethodChecker implements TypeChecker {
         throwException= !matcher.matches();
     }
 
+    /**
+     * getter for method
+     * @return Method
+     */
     public Method getMethod() {
         return method;
     }
 
+    /**
+     * getter
+     * @return boolean throwException
+     */
     public boolean getThrowException() {
         return throwException;
     }
