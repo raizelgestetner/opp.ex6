@@ -5,7 +5,7 @@ import com.sun.jdi.InvalidTypeException;
 /**
  * this class is a factory which creates VariableChecker classes
  */
-public class VariableTypeCheckerFactory {
+public class TypeCheckerFactory {
 
     public static final String STRING_TYPE = "String";
     private static final String INT_TYPE = "int";
@@ -34,7 +34,6 @@ public class VariableTypeCheckerFactory {
              case "final":
                 return checkNextWord(line);
              case"if":
-                 return new IfWhileTypeChecker(line);
              case "while":
                  return new IfWhileTypeChecker(line);
              case "return":
