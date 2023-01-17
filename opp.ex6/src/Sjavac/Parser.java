@@ -39,7 +39,8 @@ public class Parser {
     }
 
 
-    public void readFile() throws IOException, EndOfLineException, StartOfLineException, IllegalMethodFormatException, InvalidTypeException {
+    public void readFile() throws IOException, EndOfLineException, StartOfLineException,
+            IllegalMethodFormatException, InvalidTypeException {
         String line = reader.readLine();
         line = trimLine(line);
         while (line != null) {

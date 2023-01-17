@@ -1,5 +1,7 @@
 package Sjavac;
 
+import com.sun.jdi.InvalidTypeException;
+
 import java.io.*;
 
 public class Sjavac {
@@ -26,7 +28,7 @@ public class Sjavac {
             System.err.println(INVALID_FILE_NAME);
 
         }
-        catch (EndOfLineException e){
+        catch (EndOfLineException | InvalidTypeException e){
             System.out.println(ILLEGAL_CODE);
             System.err.println(e.getMessage());
         }
@@ -34,6 +36,10 @@ public class Sjavac {
         catch(StartOfLineException e){
             System.out.println(ILLEGAL_CODE);
             System.err.println("Illegal start of line");
+        }
+        catch(IllegalMethodFormatException e ){
+            System.out.println(ILLEGAL_CODE);
+            System.err.println("Illegal method");
         }
     }
 
