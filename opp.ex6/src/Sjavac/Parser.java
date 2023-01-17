@@ -118,6 +118,7 @@ public class Parser {
                     MethodChecker methodChecker = new MethodChecker(matcher.group(1),numOfBrackets,
                             method_name);
                     methodChecker.checkValidity();
+                    throwException = methodChecker.getThrowException();
                     methodsList.put(method_name, methodChecker.getMethod());
 
 
