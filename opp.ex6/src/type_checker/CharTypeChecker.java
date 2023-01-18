@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 public class CharTypeChecker implements TypeChecker {
     private final HashMap<String, String> varsToCheck;
     private static final String VALID_VALUE_REGEX = "'[^']*'";
+
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
 
     public CharTypeChecker(String line) {

@@ -10,12 +10,14 @@ import java.util.regex.Pattern;
 
 
 public class MethodChecker implements TypeChecker {
+    public static final String REGEX_VALID_TYPE = "^(int|double|String|boolean|char)$";
     private final String params;
     private final int scopeLevel;
     private final String methodName;
     private Method method;
     private static final String METHOD_NAME_REGEX = "^[a-zA-Z][\\w]*";
     private boolean throwException;
+    private TypeCheckerFactory factory ;
 
     /**
      * constructor
@@ -27,6 +29,7 @@ public class MethodChecker implements TypeChecker {
         this.params = line;
         this.methodName = name;
         this.scopeLevel = scopeLevel;
+        this.factory = new TypeCheckerFactory();
 
     }
 
@@ -42,11 +45,18 @@ public class MethodChecker implements TypeChecker {
                 param = trimLine(param);
                 String[] var = param.split(" ");
                 if (var.length == 2) {
-                    String varType = var[0];
-                    String varName = var[1];
+                    String varType = var[0].trim();
+                    String varName = var[1].trim();
+
+                    // check type is valid
+                    Pattern typePattern = Pattern.compile(REGEX_VALID_TYPE);
+                    Matcher matcher = typePattern.matcher(varType);
+                    if(!matcher.matches()){
+                        throwException = false;
+                        break;
+                    }
 
                     if (!varMap.containsKey(varName)) {
-
 
                         Variable variable = new Variable(varName, varType, scopeLevel, false);
                         varMap.put(varName, variable);

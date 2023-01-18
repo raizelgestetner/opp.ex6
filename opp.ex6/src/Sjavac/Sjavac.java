@@ -41,6 +41,10 @@ public class Sjavac {
             System.out.println(ILLEGAL_CODE);
             System.err.println("Illegal method");
         }
+        catch(InvalidIfWhileBlock e){
+            System.out.println(ILLEGAL_CODE);
+            System.err.println("Illegal if while block");
+        }
     }
 
 
