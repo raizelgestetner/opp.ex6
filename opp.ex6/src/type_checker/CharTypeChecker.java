@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 public class CharTypeChecker implements TypeChecker {
     private final HashMap<String, String> varsToCheck;
     private static final String VALID_VALUE_REGEX = "'[^']*'";
+
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
 
     public CharTypeChecker(String line) {
@@ -23,15 +24,12 @@ public class CharTypeChecker implements TypeChecker {
             String value = entry.getValue();
 
             // check name
-            Matcher matcher = namePattern.matcher(name);
-            if (!matcher.matches()) {
-                throw new InvalidTypeException();
-            }
+            checkName(name);
 
 
             // check value
             if (value != null) {
-                matcher = valuePattern.matcher(value);
+                Matcher matcher = valuePattern.matcher(value);
                 if (!matcher.matches()) {
                     throw new InvalidTypeException();
                 }

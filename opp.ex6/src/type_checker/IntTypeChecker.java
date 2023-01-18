@@ -10,12 +10,10 @@ import java.util.regex.Pattern;
 
 public class IntTypeChecker implements TypeChecker {
 
-//    private static final String VALID_NAME_REGEX = "^(?!\\d)[a-zA-Z_][a-zA-Z\\d_]*$";
     private static final String VALID_VALUE_REGEX = "-?(0|[1-9]\\d+)";
 
     private static final String SEPARATE_LINE_REGEX = "^(.*?[^\\s])\\s*=\\s*(.*)$";
 
-//    static final Pattern namePattern = Pattern.compile(VALID_NAME_REGEX);
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
 
     private HashMap<String, String> varsToCheck;

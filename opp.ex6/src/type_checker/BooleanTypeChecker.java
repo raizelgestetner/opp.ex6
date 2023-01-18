@@ -24,15 +24,12 @@ public class BooleanTypeChecker implements TypeChecker {
             String value = entry.getValue();
 
             // check name
-            Matcher matcher = namePattern.matcher(name);
-            if (!matcher.matches()) {
-                throw new InvalidTypeException();
-            }
+            checkName(name);
 
 
             // check value
             if (value != null) {
-                matcher = valuePattern.matcher(value);
+                Matcher matcher = valuePattern.matcher(value);
                 if (!matcher.matches()) {
                     throw new InvalidTypeException();
                 }
