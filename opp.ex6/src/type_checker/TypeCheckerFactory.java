@@ -20,20 +20,20 @@ public class TypeCheckerFactory {
     public static final String FINAL_TYPE = "final";
 
 
-    public TypeChecker getType(String variableType, String line,int scopeLevel,String name )
+    public TypeChecker getType(String variableType, String line,int scopeLevel,String name,boolean isFinal )
             throws InvalidTypeException {
          switch (variableType) {
              case INT_TYPE:
-                 return new IntTypeChecker(line);
+                 return new IntTypeChecker(line,scopeLevel,isFinal);
              case DOUBLE_TYPE:
-                 return new DoubleTypeChecker(line);
+                 return new DoubleTypeChecker(line,scopeLevel,isFinal);
              case STRING_TYPE :
-                 return new StringTypeChecker(line);
+                 return new StringTypeChecker(line,scopeLevel,isFinal);
              case BOOLEAN_TYPE:
 
-                 return new BooleanTypeChecker(line);
+                 return new BooleanTypeChecker(line,scopeLevel,isFinal);
              case CHAR_TYPE:
-                 return new CharTypeChecker(line);
+                 return new CharTypeChecker(line,scopeLevel,isFinal);
              case VOID_TYPE:
                  return new MethodChecker(line,scopeLevel,name);
              case FINAL_TYPE:
@@ -61,6 +61,6 @@ public class TypeCheckerFactory {
         else{
             throw new InvalidTypeException();
         }
-        return getType(next_word,line.substring(start+next_word.length()),scopeLevel,null);
+        return getType(next_word,line.substring(start+next_word.length()),scopeLevel,null,true);
     }
 }

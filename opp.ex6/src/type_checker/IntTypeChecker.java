@@ -1,6 +1,8 @@
 package type_checker;
 
 
+import Sjavac.Parser;
+import Sjavac.Variable;
 import com.sun.jdi.InvalidTypeException;
 
 import java.util.HashMap;
@@ -15,6 +17,8 @@ public class IntTypeChecker implements TypeChecker {
     private static final String SEPARATE_LINE_REGEX = "^(.*?[^\\s])\\s*=\\s*(.*)$";
 
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
+    private final int scopeLevel;
+    private final boolean isFinal;
 
     private HashMap<String, String> varsToCheck;
     private Pattern pattern;
@@ -26,10 +30,12 @@ public class IntTypeChecker implements TypeChecker {
      *
      * @param line line to be checked
      */
-    public IntTypeChecker(String line) {
+    public IntTypeChecker(String line,int scopeLevel,boolean isFinal) {
 
         // split line into names and values
-        varsToCheck = splitLine(line);
+        varsToCheck = splitLine(line,scopeLevel);
+        this.scopeLevel = scopeLevel;
+        this.isFinal = isFinal;
 
     }
 
@@ -39,6 +45,7 @@ public class IntTypeChecker implements TypeChecker {
     @Override
     public void checkValidity() throws InvalidTypeException {
 
+        HashMap<String, Variable> scopeLevelVarMap = Parser.variables.get(scopeLevel);
         // iterate over hashmap
         for (Map.Entry<String, String> entry : varsToCheck.entrySet()) {
             String name = entry.getKey();
@@ -54,7 +61,10 @@ public class IntTypeChecker implements TypeChecker {
                     throw new InvalidTypeException();
                 }
             }
-            variableMap.put(name,value);
+//            variableMap.put(name,value);
+            Variable newVar = new Variable(name,"int",value,scopeLevel,isFinal);
+            scopeLevelVarMap.put(name,newVar);
+
         }
     }
 }
