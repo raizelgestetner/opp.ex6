@@ -1,32 +1,49 @@
 package type_checker;
 
-import com.sun.jdi.InvalidTypeException;
-
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class IfWhileTypeChecker implements TypeChecker {
-    private final int scopeLevel;
+    public static final String A_INT_OR_FLOAT_REGEX = "^-?\\d*(.\\d+)?$";
+
     private String line;
     private static final String AND_CONDITION = "\\s*&&\\s*";
 
+    private ArrayList<String> paramNames;
 
-    public IfWhileTypeChecker(String line,int scopeLevel) {
+    public IfWhileTypeChecker(String line) {
         this.line = line;
-        this.scopeLevel = scopeLevel;
+        paramNames = new ArrayList<>();
+    }
+
+    public ArrayList<String> getParamNames() {
+        return paramNames;
     }
 
     @Override
-    public void checkValidity() throws InvalidTypeException {
+    public void checkValidity() {
+        //todo:  I didn't do this
+        // todo.. if/while blocks can be nested to a practically unlimited depth (i.e. you should support a
+        //todo .. depth of at least java.lang.Integer.MAX VALUE): if inside while and vise versa.
+
         String conditions = line.replaceAll("\\s*\\|\\|\\s*","&&");
         String [] splitConditions = conditions.split(AND_CONDITION);
-        if(splitConditions.length==1){
-            if(!(splitConditions[0].equals("false")||splitConditions[0].equals("true"))){
-                // check if word is an int char or double parameter that has already been initialized
-
-            }
+        for(String condition : splitConditions){ //todo: need to check if support empty condition
+            Pattern intOrDoubleRegex = Pattern.compile(A_INT_OR_FLOAT_REGEX);
+            Matcher matcherIntDouble = intOrDoubleRegex.matcher(condition);
+            Pattern EmptyConditionRegex = Pattern.compile("^\\s*$");
+            Matcher matcherEmptyCondition = EmptyConditionRegex.matcher(condition);
+//            if(splitConditions.length==1){
+                //check if is an integer or float or boolean true or false and isn't white space
+                if(!(condition.equals("false")||condition.equals("true")||
+                        matcherIntDouble.find()||!matcherEmptyCondition.find())){
+                    // parser will check this list to check if they are valid int char or double parameter
+                    // that has already been initialized
+                    paramNames.add(splitConditions[0]);
+                }
+//            }
         }
-
-
     }
+
 }

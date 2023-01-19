@@ -6,6 +6,7 @@ import type_checker.MethodChecker;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,7 +16,8 @@ import java.util.regex.Pattern;
  */
 public class Parser {
     public static final String REGEX_OPEN_PARENTHESIS = "\\(";
-    public static final String VALID_LINE_PREFIX = "^(if|while|void|char|String|boolean|double|return|int)\\s*";
+    public static final String VALID_LINE_PREFIX = "^\\s*(if|while|void|char|String|boolean|double|return" +
+            "|int|})\\s*";
     private final BufferedReader reader;
     private HashMap<String, Method> methodsList = new HashMap<>();
     public static HashMap<Integer, HashMap<String , Variable>> variables = new HashMap<>();
@@ -133,6 +135,10 @@ public class Parser {
             else if (first_word.equals("return")){
 
             }
+            else if(first_word.equals("}")){
+                variables.remove(numOfBrackets);
+                numOfBrackets--;
+            }
         }
 
 
@@ -149,10 +155,30 @@ public class Parser {
         if(matcher.find()){
             String condition = matcher.group(2);
             numOfBrackets++;
-            IfWhileTypeChecker checker = new IfWhileTypeChecker(condition,numOfBrackets);
+            IfWhileTypeChecker checker = new IfWhileTypeChecker(condition);
             checker.checkValidity();
-        }
+            ArrayList<String> params = checker.getParamNames();
+            for(String param : params){
+                boolean foundGoodParam = false;
+                for (int i = 0; i < numOfBrackets; i++) {
+                    HashMap<String, Variable> varsInScope= variables.get(i);
+                    for(Variable var : varsInScope.values()){
+                        boolean goodType =
+                                        var.getType().equals("int") ||
+                                        var.getType().equals("double") ||
+                                        var.getType().equals("boolean");
+                        if (param.equals(var.getName()) && (goodType)) {
+                            foundGoodParam = true;
+                            break;
+                        }
 
+                    }
+                }
+                if(!foundGoodParam){
+                    throw new InvalidTypeException();
+                }
+            }
+        }
         else{
             throw new InvalidIfWhileBlock();
         }
@@ -161,7 +187,7 @@ public class Parser {
     private void checkMethodLine(String line) throws InvalidTypeException, IllegalMethodFormatException {
         if (line.startsWith(METHOD_PREFIX)) {
 
-            line.replaceAll(METHOD_PREFIX, VALID_LINE_PREFIX);
+            line = line.replaceAll(METHOD_PREFIX, VALID_LINE_PREFIX);
             // split line to find method name and parameters
             Pattern pattern = Pattern.compile(SPLIT_LINE_METHOD);
             Matcher matcher = pattern.matcher(line);
