@@ -1,5 +1,7 @@
 package type_checker;
 
+import Sjavac.Parser;
+import Sjavac.Variable;
 import com.sun.jdi.InvalidTypeException;
 
 import java.util.HashMap;
@@ -10,6 +12,9 @@ import java.util.regex.Pattern;
 public class DoubleTypeChecker implements TypeChecker {
     private static final String VALID_VALUE_REGEX = "-?\\\\d+(\\\\.\\\\d+)?";
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
+    private static final String DOUBLE_TYPE = "double";
+    private final int scopeLevel;
+    private final boolean isFinal;
 
     private HashMap<String, String> varsToCheck;
     private Matcher matcher;
@@ -19,10 +24,12 @@ public class DoubleTypeChecker implements TypeChecker {
      *
      * @param line line to be checked
      */
-    public DoubleTypeChecker(String line) {
+    public DoubleTypeChecker(String line,int scopeLevel,boolean isFinal) {
 
         // split line into names and values
-        varsToCheck = splitLine(line);
+        varsToCheck = splitLine(line,scopeLevel);
+        this.scopeLevel = scopeLevel;
+        this.isFinal = isFinal;
 
     }
 
@@ -47,7 +54,9 @@ public class DoubleTypeChecker implements TypeChecker {
                     throw new InvalidTypeException();
                 }
             }
-            variableMap.put(name,value);
+
+            Variable newVar = new Variable(name, DOUBLE_TYPE,value,scopeLevel,isFinal);
+            Parser.variables.get(scopeLevel).put(name,newVar);
         }
     }
 }

@@ -18,7 +18,7 @@ public class Parser {
     public static final String VALID_LINE_PREFIX = "^(if|while|void|char|String|boolean|double|return|int)\\s*";
     private final BufferedReader reader;
     private HashMap<String, Method> methodsList = new HashMap<>();
-    private HashMap<Integer, HashMap<String , Variable>> variables = new HashMap<>();
+    public static HashMap<Integer, HashMap<String , Variable>> variables = new HashMap<>();
 
 
     private int numOfBrackets = 0; // todo count number of brackets and make sure is legal
@@ -87,6 +87,11 @@ public class Parser {
 
         // close stream
         reader.close();
+    }
+
+
+    public HashMap<Integer, HashMap<String, Variable>> getVariables() {
+        return variables;
     }
 
 
