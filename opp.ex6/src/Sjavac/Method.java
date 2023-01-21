@@ -6,6 +6,8 @@ public class Method {
 
     private String methodName ;
     private HashMap<String,Variable> methodParameters;
+    private int methodScope;
+    private boolean hasReturn;
 
     /**
      * constuctor
@@ -15,6 +17,8 @@ public class Method {
     public Method(String methodName, HashMap<String,Variable> methodParameters) {
         this.methodName = methodName;
         this.methodParameters = methodParameters;
+        this.methodScope = methodScope;
+        hasReturn = false;
     }
 
     /**
@@ -31,5 +35,13 @@ public class Method {
      */
     public String getMethodName() {
         return methodName;
+    }
+
+    public int getMethodScope() {
+        return methodScope;
+    }
+    public void hasReturn()
+    {
+        hasReturn = true;
     }
 }

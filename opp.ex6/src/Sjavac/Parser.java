@@ -3,6 +3,7 @@ package Sjavac;
 import com.sun.jdi.InvalidTypeException;
 import type_checker.IfWhileTypeChecker;
 import type_checker.MethodChecker;
+import type_checker.ReturnChecker;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,13 +24,14 @@ public class Parser {
     public static HashMap<Integer, HashMap<String , Variable>> variables = new HashMap<>();
 
 
-    private int numOfBrackets = 0; // todo count number of brackets and make sure is legal
+    private int scopeNum = 0; // todo count number of brackets and make sure is legal
     private static final String REGEX_COMMENT = "^//.*$";
     private static final String VALID_OUTLINE_REGEX_IF_WHILE = "^(if|while)\\s*\\((.*)\\)\\s*\\{\\s+$";
     private static final String INVALID_PREFIX_REGEX = "^[\\s]*[;{][\\s]*$";
     private static final String VALID_END_OF_LINE_REGEX = ".*[;{}]$";
     private static final String TYPE_PREFIX = "^\b(int|double|boolean|char|String|void|final|if|return)\b";
     private static final String METHOD_PREFIX = "void";
+    private Method curMethod; //is null if not in method and otherwise holds the current method of the scope
 
     private static final String SPLIT_LINE_METHOD =
             "^\\w+\\s+\\w+\\s*\\(([\\w\\s]+\\s+\\w+(,\\s*[\\w\\s]+\\s+\\w+)*)?\\)\\s*\\{\\s*$";//todo make sure 2
@@ -41,6 +43,7 @@ public class Parser {
      */
     public Parser(BufferedReader reader) {
         this.reader = reader;
+        this.curMethod = null;
     }
 
 
@@ -132,12 +135,26 @@ public class Parser {
             else if(first_word.equals("boolean")){
 
             }
+            else if(first_word.equals("}")){
+                //todo need to make curMethod change and scope number change too
+                //todo if there are methods that didnt have returen - need to throw exceotions?
+
+            }
             else if (first_word.equals("return")){
+                if(scopeNum == 0){
+                    throw new InvalidReturn();
+                }
+                else {
+                    ReturnChecker returnChecker = new ReturnChecker(line); //if doesn't throw excetion
+                    // means the cur method hase a return value
+                    curMethod.hasReturn();
+                }
 
             }
             else if(first_word.equals("}")){
-                variables.remove(numOfBrackets);
-                numOfBrackets--;
+                variables.remove(scopeNum);
+                scopeNum--;
+//                curMethod = //todo need to update curMethod
             }
         }
 
@@ -154,13 +171,13 @@ public class Parser {
         Matcher matcher = ifWhilePattern.matcher(line);
         if(matcher.find()){
             String condition = matcher.group(2);
-            numOfBrackets++;
+            scopeNum++;
             IfWhileTypeChecker checker = new IfWhileTypeChecker(condition);
             checker.checkValidity();
             ArrayList<String> params = checker.getParamNames();
             for(String param : params){
                 boolean foundGoodParam = false;
-                for (int i = 0; i < numOfBrackets; i++) {
+                for (int i = 0; i < scopeNum; i++) {
                     HashMap<String, Variable> varsInScope= variables.get(i);
                     for(Variable var : varsInScope.values()){
                         boolean goodType =
@@ -196,16 +213,14 @@ public class Parser {
                 String method_name = matcher.group(0).split(REGEX_OPEN_PARENTHESIS)[0].strip();
                 if (!methodsList.containsKey(method_name)) { //todo check that this is the correct method name
 
-                    MethodChecker methodChecker = new MethodChecker(matcher.group(1),numOfBrackets,
+                    MethodChecker methodChecker = new MethodChecker(matcher.group(1), scopeNum,
                             method_name);
                     methodChecker.checkValidity();
                     throwException = methodChecker.getThrowException();
                     methodsList.put(method_name, methodChecker.getMethod());
-
-                    numOfBrackets++;
-
+                    scopeNum++;
+                    curMethod = methodsList.get(method_name);
                 }
-
             }
             if(throwException){
                 throw new IllegalMethodFormatException();
