@@ -1,13 +1,18 @@
 package Sjavac;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Method {
 
-    private String methodName ;
+     private String methodName ;
     private HashMap<String,Variable> methodParameters;
     private int methodScope;
     private boolean hasReturn;
+
+
 
     /**
      * constuctor
@@ -16,9 +21,10 @@ public class Method {
      */
     public Method(String methodName, HashMap<String,Variable> methodParameters) {
         this.methodName = methodName;
-        this.methodParameters = methodParameters;
         this.methodScope = methodScope;
         hasReturn = false;
+        this.methodParameters = methodParameters;
+
     }
 
     /**
@@ -40,8 +46,14 @@ public class Method {
     public int getMethodScope() {
         return methodScope;
     }
-    public void hasReturn()
-    {
+    public void hasReturn(){
         hasReturn = true;
     }
+    public void hasNoReturn(){
+        hasReturn = false;
+    }
+    public boolean GetHasReturn(){
+        return hasReturn;
+    }
+
 }

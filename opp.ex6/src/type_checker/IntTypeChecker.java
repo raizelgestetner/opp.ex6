@@ -5,6 +5,7 @@ import Sjavac.Parser;
 import Sjavac.Variable;
 import com.sun.jdi.InvalidTypeException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -12,17 +13,19 @@ import java.util.regex.Pattern;
 
 public class IntTypeChecker implements TypeChecker {
 
-    private static final String VALID_VALUE_REGEX = "-?(0|[1-9]\\d+)";
+    private static final String VALID_VALUE_REGEX = "^\\s*[-+]?(\\d+)*\\s*$";
 
     private static final String SEPARATE_LINE_REGEX = "^(.*?[^\\s])\\s*=\\s*(.*)$";
 
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
+    public static final String INT_TYPE = "int";
     private final int scopeLevel;
     private final boolean isFinal;
 
     private HashMap<String, String> varsToCheck;
     private Pattern pattern;
     private Matcher matcher;
+    private ArrayList<String[]> arr ;
 
 
     /**
@@ -36,16 +39,18 @@ public class IntTypeChecker implements TypeChecker {
         varsToCheck = splitLine(line,scopeLevel);
         this.scopeLevel = scopeLevel;
         this.isFinal = isFinal;
+        arr = new ArrayList<>();
 
     }
 
     /**
-     * can be a number positive, 0 or negative
+     * can be an int number positive, 0 or negative
      */
     @Override
-    public void checkValidity() throws InvalidTypeException {
+    public void checkValidity() throws InvalidTypeException, VarNameAlreadyUsed {
 
         HashMap<String, Variable> scopeLevelVarMap = Parser.variables.get(scopeLevel);
+
         // iterate over hashmap
         for (Map.Entry<String, String> entry : varsToCheck.entrySet()) {
             String name = entry.getKey();
@@ -61,10 +66,13 @@ public class IntTypeChecker implements TypeChecker {
                     throw new InvalidTypeException();
                 }
             }
-//            variableMap.put(name,value);
-            Variable newVar = new Variable(name,"int",value,scopeLevel,isFinal);
-            scopeLevelVarMap.put(name,newVar);
+            arr.add(new String[]{name, INT_TYPE, value});
 
         }
+
+    }
+
+    public ArrayList<String[]> getArr() {
+        return arr;
     }
 }

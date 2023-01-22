@@ -5,7 +5,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class IfWhileTypeChecker implements TypeChecker {
-    public static final String A_INT_OR_FLOAT_REGEX = "^-?\\d*(.\\d+)?$";
+    public static final String A_INT_OR_FLOAT_REGEX = "^[+\\-]?\\s*\\d*\\.\\d+\\s*$|^[+\\-]?\\s*\\d+\\" +
+            ".\\d*\\s*$|^\\s*\\d+\\s*$";
 
     private String line;
     private static final String AND_CONDITION = "\\s*&&\\s*";
@@ -23,7 +24,7 @@ public class IfWhileTypeChecker implements TypeChecker {
 
     @Override
     public void checkValidity() {
-        //todo:  I didn't do this
+        //todo:  I didn't do this:
         // todo.. if/while blocks can be nested to a practically unlimited depth (i.e. you should support a
         //todo .. depth of at least java.lang.Integer.MAX VALUE): if inside while and vise versa.
 
@@ -34,9 +35,8 @@ public class IfWhileTypeChecker implements TypeChecker {
             Matcher matcherIntDouble = intOrDoubleRegex.matcher(condition);
             Pattern EmptyConditionRegex = Pattern.compile("^\\s*$");
             Matcher matcherEmptyCondition = EmptyConditionRegex.matcher(condition);
-//            if(splitConditions.length==1){
-                //check if is an integer or float or boolean true or false and isn't white space
-                if(!(condition.equals("false")||condition.equals("true")||
+
+            if(!(condition.equals("false")||condition.equals("true")||
                         matcherIntDouble.find()||!matcherEmptyCondition.find())){
                     // parser will check this list to check if they are valid int char or double parameter
                     // that has already been initialized

@@ -9,13 +9,15 @@ import java.util.regex.Pattern;
 
 public interface TypeChecker {
 
-    String SEPARATE_LINE_REGEX = "/^([a-zA-Z_][a-zA-Z\\d_]*)\\s{1}(?:=\\s*([^,;]+))?\\s*,?\\s*;/gm";
+    String SEPARATE_LINE_REGEX = "(^\\s*\\w+\\s+([a-zA-Z_][a-zA-Z\\d_]*)\\s*=" +
+            "\\s*([a-zA-Z_+\\-]?[a-zA-Z\\d_]*)\\s*;\\s*$)|" +
+            "(^\\s*\\w+\\s+([a-zA-Z_][a-zA-Z\\d_]*)\\s*;\\s*$)";
     Pattern separateLinePattern = Pattern.compile(SEPARATE_LINE_REGEX);
     String VALID_NAME_REGEX = "^(?!\\d)[a-zA-Z_][a-zA-Z\\d_]*$";
     Pattern namePattern = Pattern.compile(VALID_NAME_REGEX);
 
 
-    void checkValidity() throws InvalidTypeException;
+    void checkValidity() throws InvalidTypeException, VarNameAlreadyUsed, InvalidMethodName;
 
     /**
      * this function splits the given line into names and values or variables. and checks that these names weren't
@@ -29,9 +31,17 @@ public interface TypeChecker {
         Matcher matcher = separateLinePattern.matcher(line);
 
         while (matcher.find()) {
-            if (!Parser.variables.get(scopeLevel).containsKey(matcher.group(1))) {
-                varList.put(matcher.group(1), matcher.group(2));
-            }
+
+                if (Parser.variables.size() <= scopeLevel || !Parser.variables.get(scopeLevel).containsKey(matcher.group(1))) {
+                    if(line.contains("=")) {
+                        varList.put(matcher.group(2), matcher.group(3));
+                    }
+                    else{
+                        varList.put(matcher.group(5), null);
+                    }
+                }
+
+
         }
 
         return varList;

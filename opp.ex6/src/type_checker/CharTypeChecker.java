@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 public class CharTypeChecker implements TypeChecker {
     public static final String CHAR_TYPE = "char";
     private final HashMap<String, String> varsToCheck;
-    private static final String VALID_VALUE_REGEX = "'[^']*'";
+    private static final String VALID_VALUE_REGEX = "^\\s*'.'\\s*$";
 
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
     private boolean isFinal;
