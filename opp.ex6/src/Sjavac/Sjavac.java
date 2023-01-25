@@ -12,6 +12,11 @@ public class Sjavac {
     private static final int LEGAL_CODE = 0;
     private static final int ILLEGAL_CODE = 1;
     private static final int IO_ERROR = 2;
+    public static final String INVALID_TYPE_EXCEPTION_MSG = "Invalid type exception";
+    public static final String ILLEGAL_START_OF_LINE = "Illegal start of line";
+    public static final String ILLEGAL_METHOD_FORMAT_MSG = "Illegal method format";
+    public static final String ILLEGAL_IF_WHILE_BLOCK_MSG = "Illegal if while block";
+    public static final String RETURN_ERROR_MSG = "Method must have return at end of the method";
 
     public static void main(String[] fileName) {
 
@@ -31,26 +36,30 @@ public class Sjavac {
             System.err.println(INVALID_FILE_NAME);
 
         }
-        catch (EndOfLineException | InvalidTypeException e){
+        catch (EndOfLineException e){
             System.out.println(ILLEGAL_CODE);
-            System.err.println(e.getMessage());
+            System.err.println("Illegal end of line");
+        }
+        catch (InvalidTypeException e){
+            System.out.println(ILLEGAL_CODE);
+            System.err.println(INVALID_TYPE_EXCEPTION_MSG);
         }
 
         catch(StartOfLineException e){
             System.out.println(ILLEGAL_CODE);
-            System.err.println("Illegal start of line");
+            System.err.println(ILLEGAL_START_OF_LINE);
         }
         catch(IllegalMethodFormatException e ){
             System.out.println(ILLEGAL_CODE);
-            System.err.println("Illegal method format");
+            System.err.println(ILLEGAL_METHOD_FORMAT_MSG);
         }
         catch(InvalidIfWhileBlock e){
             System.out.println(ILLEGAL_CODE);
-            System.err.println("Illegal if while block");
+            System.err.println(ILLEGAL_IF_WHILE_BLOCK_MSG);
         }
         catch (MethodHasNoReturn e){
             System.out.println(ILLEGAL_CODE);
-            System.err.println("Method must have return at end of the method");
+            System.err.println(RETURN_ERROR_MSG);
         } catch (IllegalNestedMethod e) {
             System.out.println(ILLEGAL_CODE);
             System.err.println("Nested methods are illegal");

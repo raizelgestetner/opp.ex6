@@ -9,5 +9,6 @@ public class EndOfLineException extends Exception {
 
     public EndOfLineException(String message) {
         super(message);
+        System.err.println("Invalid end of line");
     }
 }

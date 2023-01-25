@@ -60,16 +60,32 @@ public class IntTypeChecker implements TypeChecker {
             checkName(name);
 
             // check value
-            if (value != null) {
-                matcher = valuePattern.matcher(value);
-                if (!matcher.matches()) {
-                    throw new InvalidTypeException();
-                }
-            }
+            checkValue(value);
+
             arr.add(new String[]{name, INT_TYPE, value});
 
         }
 
+    }
+
+    public IntTypeChecker() {
+        scopeLevel=0;
+        isFinal=false;
+    }
+
+    private void checkValue(String value) throws InvalidTypeException {
+        if (value != null) {
+            Matcher matcher = valuePattern.matcher(value);
+            if (!matcher.matches()) {
+                //check if already declared in earlier scope
+                boolean inPrevScope= checkScope(scopeLevel,value);
+
+                if(!inPrevScope){
+
+
+                throw new InvalidTypeException();}
+            }
+        }
     }
 
     public ArrayList<String[]> getArr() {
