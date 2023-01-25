@@ -33,11 +33,14 @@ public interface TypeChecker {
      * @param line line to be split
      * @return hashmap with names of variables as keys and their value (if value was initialized, else value is null)
      */
-    default HashMap<String, String> splitLine(String line, int scopeLevel) {
+    default HashMap<String, String> splitLine(String line, int scopeLevel) throws InvalidVariableException {
         HashMap<String, String> varList = new HashMap<>();
 
         Matcher matcher = separateLinePattern.matcher(line);
 
+        if(!matcher.find()){
+            throw new InvalidVariableException();
+        }
         while (matcher.find()) {
 
             if (Parser.variables.size() <= scopeLevel || !Parser.variables.get(scopeLevel).containsKey(matcher.group(1))) {

@@ -62,7 +62,7 @@ public class Parser {
 
 
     public void readFile() throws IOException, EndOfLineException, StartOfLineException,
-            IllegalMethodFormatException, InvalidTypeException, InvalidIfWhileBlock, MethodHasNoReturn, IllegalNestedMethod, IllegalMethodCall, VarNameAlreadyUsed, InvalidMethodName {
+            IllegalMethodFormatException, InvalidTypeException, InvalidIfWhileBlock, MethodHasNoReturn, IllegalNestedMethod, IllegalMethodCall, VarNameAlreadyUsed, InvalidMethodName, InvalidVariableException {
         String line = reader.readLine();
         line = trimLine(line);
         while (line != null) {
@@ -123,7 +123,7 @@ public class Parser {
      * @param line line to check
      */
     private void checkLine(String line) throws IllegalMethodFormatException, InvalidTypeException,
-            InvalidIfWhileBlock, MethodHasNoReturn, IllegalNestedMethod, IllegalMethodCall, VarNameAlreadyUsed, InvalidMethodName {
+            InvalidIfWhileBlock, MethodHasNoReturn, IllegalNestedMethod, IllegalMethodCall, VarNameAlreadyUsed, InvalidMethodName, InvalidVariableException {
         Pattern pattern = Pattern.compile(VALID_LINE_PREFIX);
         Matcher matcher = pattern.matcher(line);
         if (matcher.find()) {

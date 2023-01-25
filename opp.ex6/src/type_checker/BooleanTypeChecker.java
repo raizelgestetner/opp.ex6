@@ -18,7 +18,7 @@ public class BooleanTypeChecker implements TypeChecker {
     private final int scopeLevel;
 
     ;
-    public BooleanTypeChecker(String line,int scopeLevel,boolean isFinal) {
+    public BooleanTypeChecker(String line,int scopeLevel,boolean isFinal) throws InvalidVariableException {
         varsToCheck=splitLine(line,scopeLevel);
         this.scopeLevel=scopeLevel;
         this.isFinal = isFinal;

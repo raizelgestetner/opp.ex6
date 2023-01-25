@@ -33,7 +33,7 @@ public class IntTypeChecker implements TypeChecker {
      *
      * @param line line to be checked
      */
-    public IntTypeChecker(String line,int scopeLevel,boolean isFinal) {
+    public IntTypeChecker(String line,int scopeLevel,boolean isFinal) throws InvalidVariableException {
 
         // split line into names and values
         varsToCheck = splitLine(line,scopeLevel);

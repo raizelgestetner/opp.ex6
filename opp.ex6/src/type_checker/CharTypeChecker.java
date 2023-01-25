@@ -18,7 +18,7 @@ public class CharTypeChecker implements TypeChecker {
     private boolean isFinal;
     private final int scopeLevel;
 
-    public CharTypeChecker(String line,int scopeLevel,boolean isFinal) {
+    public CharTypeChecker(String line,int scopeLevel,boolean isFinal) throws InvalidVariableException {
         varsToCheck =splitLine(line,scopeLevel);
         this.scopeLevel = scopeLevel;
         this.isFinal=isFinal;

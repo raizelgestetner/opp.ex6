@@ -2,6 +2,7 @@ package Sjavac;
 
 import com.sun.jdi.InvalidTypeException;
 import type_checker.InvalidMethodName;
+import type_checker.InvalidVariableException;
 import type_checker.VarNameAlreadyUsed;
 
 import java.io.*;
@@ -17,6 +18,7 @@ public class Sjavac {
     public static final String ILLEGAL_METHOD_FORMAT_MSG = "Illegal method format";
     public static final String ILLEGAL_IF_WHILE_BLOCK_MSG = "Illegal if while block";
     public static final String RETURN_ERROR_MSG = "Method must have return at end of the method";
+    public static final String ILLEGAL_VARIABLE_DECLARATION_MSG = "Illegal variable declaration";
 
     public static void main(String[] fileName) {
 
@@ -56,6 +58,11 @@ public class Sjavac {
         catch(InvalidIfWhileBlock e){
             System.out.println(ILLEGAL_CODE);
             System.err.println(ILLEGAL_IF_WHILE_BLOCK_MSG);
+        }
+
+        catch (InvalidVariableException e){
+            System.out.println(ILLEGAL_CODE);
+            System.err.println(ILLEGAL_VARIABLE_DECLARATION_MSG);
         }
         catch (MethodHasNoReturn e){
             System.out.println(ILLEGAL_CODE);

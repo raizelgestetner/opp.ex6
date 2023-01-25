@@ -24,7 +24,7 @@ public class DoubleTypeChecker implements TypeChecker {
      *
      * @param line line to be checked
      */
-    public DoubleTypeChecker(String line,int scopeLevel,boolean isFinal) {
+    public DoubleTypeChecker(String line,int scopeLevel,boolean isFinal) throws InvalidVariableException {
 
         // split line into names and values
         varsToCheck = splitLine(line,scopeLevel);
