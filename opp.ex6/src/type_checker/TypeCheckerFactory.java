@@ -1,7 +1,9 @@
 package type_checker;
 
+import Sjavac.Variable;
 import com.sun.jdi.InvalidTypeException;
 
+import java.util.HashMap;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,9 +20,15 @@ public class TypeCheckerFactory {
     public static final String CHAR_TYPE = "char";
     public static final String VOID_TYPE = "void";
     public static final String FINAL_TYPE = "final";
+//    private final HashMap<Integer, HashMap<String, Variable>> variables;
+
+//    public TypeCheckerFactory( HashMap<Integer, HashMap<String, Variable>> variables){
+//        this.variables = variables;
+//    }
 
 
-    public TypeChecker getType(String variableType, String line,int scopeLevel,String name,boolean isFinal )
+    public TypeChecker getType(String variableType, String line, int scopeLevel, String name,
+                               boolean isFinal )
             throws InvalidTypeException {
          switch (variableType) {
              case INT_TYPE:
@@ -40,9 +48,9 @@ public class TypeCheckerFactory {
                 return checkNextWord(line, scopeLevel);
              case"if":
              case "while":
-                 return new IfWhileTypeChecker(line,scopeLevel);
-//             case "return":
-//                 return new ReturnChecker(line);
+                 return new IfWhileTypeChecker(line);
+             case "return":
+                 return new ReturnChecker(line);
              default:
                  throw new InvalidTypeException();
         }
