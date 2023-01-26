@@ -17,25 +17,25 @@ import java.util.regex.Pattern;
 public class Parser {
 
     private static final String METHOD_SUFFIX = "\\s*\\([^\\)]*\\)\\s*(\\{|;)$";
-    public static final String REGEX_OPEN_PARENTHESIS = "\\(";
-    public static final String VALID_LINE_PREFIX = "^\\s*(if|while|void|char|String|boolean|double|return" +
+    private static final String REGEX_OPEN_PARENTHESIS = "\\(";
+    private static final String VALID_LINE_PREFIX = "^\\s*(if|while|void|char|String|boolean|double|return" +
             "|final" +
             "|int|})\\s*";
-    public static final String METHOD_CALL_PATTERN = "^\\s*[a-zA-z\\d]+\\s*\\(.*\\);\\s*$";
-    public static final String SPLIT_BY_PARENTHESES = "\\s*\\(\\s*|\\s*\\)\\s*";
-    public static final String SPLIT_BY_COMMA = "\\s*,\\s*";
-    public static final String INT_REGEX = "^\\s*[+\\-]?\\d+\\s*$";
-    public static final String DOUBLE_REGEX = "^[+\\-]?\\s*\\d*\\.\\d+\\s*$|^[+\\-]?\\s*\\d+\\.\\d*\\s*$";
-    public static final String BOOL_REGEX = "^\\s*true\\s*$|^\\s*false\\s*$";
-    public static final String STRING_REGEX = "^\\s*[a-zA-Z_\\d]*\\s*$";
-    public static final String CHAR_REGEX = "^\\s*'.'\\s*$";
+    private static final String METHOD_CALL_PATTERN = "^\\s*[a-zA-z\\d]+\\s*\\(.*\\);\\s*$";
+    private static final String SPLIT_BY_PARENTHESES = "\\s*\\(\\s*|\\s*\\)\\s*";
+    private static final String SPLIT_BY_COMMA = "\\s*,\\s*";
+    private static final String INT_REGEX = "^\\s*[+\\-]?\\d+\\s*$";
+    private static final String DOUBLE_REGEX = "^[+\\-]?\\s*\\d*\\.\\d+\\s*$|^[+\\-]?\\s*\\d+\\.\\d*\\s*$";
+    private static final String BOOL_REGEX = "^\\s*true\\s*$|^\\s*false\\s*$";
+    private static final String STRING_REGEX = "^\\s*[a-zA-Z_\\d]*\\s*$";
+    private static final String CHAR_REGEX = "^\\s*'.'\\s*$";
     private static final String BOOLEAN_TYPE = "boolean";
-    public static final String STRING_TYPE = "String";
-    public static final String DOUBLE_TYPE = "double";
-    public static final String CHAR_TYPE = "char";
-    public static final String INT_TYPE = "int";
-    public static final String RETURN_TYPE = "return";
-    public static final String FINAL_TYPE = "final";
+    private static final String STRING_TYPE = "String";
+    private static final String DOUBLE_TYPE = "double";
+    private static final String CHAR_TYPE = "char";
+    private static final String INT_TYPE = "int";
+    private static final String RETURN_TYPE = "return";
+    private static final String FINAL_TYPE = "final";
 
     private final Pattern intPattern = Pattern.compile(INT_REGEX);
     private final Pattern doublePattern = Pattern.compile(DOUBLE_REGEX);
@@ -44,12 +44,11 @@ public class Parser {
 
     private final Pattern charPattern = Pattern.compile(CHAR_REGEX);
     private final BufferedReader reader;
-    private HashMap<String, Method> methodsList = new HashMap<>();
+    private HashMap<String, Method> methodsList;
     public static HashMap<Integer, HashMap<String, Variable>> variables;
 
 
-    private int scopeNum = 0; // todo count number of brackets and make sure is legal
-    //    private static final String REGEX_COMMENT = "^//.*";
+    private int scopeNum = 0;
     private static final String REGEX_COMMENT = "^(\\/\\/).*$";
 
     private static final String VALID_OUTLINE_REGEX_IF_WHILE = "^(if|while)\\s*\\((.*)\\)\\s*\\{$";
@@ -65,9 +64,8 @@ public class Parser {
     private HashMap<String, String> globalVarsToFind;
 
     private static final String SPLIT_LINE_METHOD =
-            "^\\w+\\s+\\w+\\s*\\(([\\w\\s]+\\s+\\w+(,\\s*[\\w\\s]+\\s+\\w+)*)?\\)\\s*\\{\\s*$";//todo make sure 2
-    // todo backslashes work
-//
+            "^\\w+\\s+\\w+\\s*\\(([\\w\\s]+\\s+\\w+(,\\s*[\\w\\s]+\\s+\\w+)*)?\\)\\s*\\{\\s*$";
+
 
     /**
      * constructor
@@ -173,15 +171,12 @@ public class Parser {
                     }
                     variables.remove(scopeNum);
                     scopeNum--;
-//                    curMethod = null;  i changed!!???
                     break;
                 case "void":
                     checkMethodLine(line);
-//                    scopeNum++;
                     break;
                 case "if":
                 case "while":
-//                    curMethod = null;
                     checkIfWhile(line);
                     break;
 

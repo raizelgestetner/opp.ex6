@@ -1,0 +1,2 @@
+final char a = 'i';
+a = 'f';
