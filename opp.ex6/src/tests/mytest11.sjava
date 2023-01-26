@@ -1,0 +1,3 @@
+ int b = a;
+
+final int a = 4;
