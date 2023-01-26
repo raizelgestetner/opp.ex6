@@ -4,6 +4,7 @@ import Sjavac.Parser;
 import Sjavac.Variable;
 import com.sun.jdi.InvalidTypeException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -15,6 +16,7 @@ public class CharTypeChecker implements TypeChecker {
     private static final String VALID_VALUE_REGEX = "^\\s*'.'\\s*$";
 
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
+    private final ArrayList<String[]> arr;
     private boolean isFinal;
     private final int scopeLevel;
 
@@ -22,6 +24,7 @@ public class CharTypeChecker implements TypeChecker {
         varsToCheck =splitLine(line,scopeLevel);
         this.scopeLevel = scopeLevel;
         this.isFinal=isFinal;
+        this.arr=new ArrayList<String[]>();
 
     }
 
@@ -42,10 +45,12 @@ public class CharTypeChecker implements TypeChecker {
                     throw new InvalidTypeException();
                 }
             }
-            // add to variable map in Parser class
-            Variable newVar = new Variable(name, CHAR_TYPE,value,scopeLevel,isFinal);
-            Parser.variables.get(scopeLevel).put(name,newVar);
+            arr.add(new String[]{name, CHAR_TYPE, value});
         }
 
+    }
+
+    public ArrayList<String[]> getArr() {
+        return arr;
     }
 }

@@ -4,6 +4,7 @@ import Sjavac.Parser;
 import Sjavac.Variable;
 import com.sun.jdi.InvalidTypeException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -16,6 +17,7 @@ public class StringTypeChecker implements TypeChecker {
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
     private final int scopeLevel;
     private final boolean isFinal;
+    private ArrayList<String[]> arr;
 
     /**
      * constructor
@@ -28,8 +30,14 @@ public class StringTypeChecker implements TypeChecker {
         varsToCheck = splitLine(line,scopeLevel);
         this.scopeLevel = scopeLevel;
         this.isFinal = isFinal ;
+        this.arr =new ArrayList<>();
 
     }
+
+    public ArrayList<String[]> getArr() {
+        return arr;
+    }
+
     @Override
     public void checkValidity() throws InvalidTypeException {
         // iterate over hashmap
@@ -48,9 +56,9 @@ public class StringTypeChecker implements TypeChecker {
                     throw new InvalidTypeException();
                 }
             }
-            // add to variable map in Parser class
-            Variable newVar = new Variable(name, STRING_TYPE,value,scopeLevel,isFinal);
-            Parser.variables.get(scopeLevel).put(name,newVar);
+
+            arr.add(new String[]{name, STRING_TYPE, value});
+
         }
 
     }

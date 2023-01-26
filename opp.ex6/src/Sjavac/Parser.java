@@ -26,6 +26,8 @@ public class Parser {
     public static final String BOOL_REGEX = "^\\s*true\\s*$|^\\s*false\\s*$";
     public static final String STRING_REGEX = "^\\s*[a-zA-Z_\\d]*\\s*$";
     public static final String CHAR_REGEX = "^\\s*'.'\\s*$";
+    private static final String BOOLEAN_TYPE = "boolean";
+
     private final Pattern intPattern = Pattern.compile(INT_REGEX);
     private final Pattern doublePattern = Pattern.compile(DOUBLE_REGEX);
     private final Pattern boolPattern = Pattern.compile(BOOL_REGEX);
@@ -153,7 +155,13 @@ public class Parser {
                     checkIfWhile(line);
                     break;
                 case "char":
-
+                    CharTypeChecker charChecker = new CharTypeChecker(line,scopeNum,false);
+                    charChecker.checkValidity();
+                    ArrayList<String[]>charVals = charChecker.getArr();
+                    for (String [] val :charVals){
+                        Variable var = new Variable(val[0],val[1],val[2],scopeNum,false);
+                        AddVarToVars(scopeNum,val[0],var);
+                    }
                     break;
                 case "int":
                     IntTypeChecker intTypeChecker = new IntTypeChecker(line, scopeNum, false);
@@ -174,10 +182,22 @@ public class Parser {
                     }
                     break;
                 case "String":
-
+                    StringTypeChecker stringTypeChecker= new StringTypeChecker(line,scopeNum,false);
+                    stringTypeChecker.checkValidity();
+                    ArrayList<String[] > sValues = stringTypeChecker.getArr();
+                    for(String[]val:sValues){
+                        Variable var = new Variable(val[0],val[1],val[2],scopeNum,false);
+                        AddVarToVars(scopeNum,val[0],var);
+                    }
                     break;
-                case "boolean":
-
+                case BOOLEAN_TYPE:
+                    BooleanTypeChecker booleanChecker = new BooleanTypeChecker(line,scopeNum,false);
+                    booleanChecker.checkValidity();
+                    ArrayList<String[]> booleanVars = booleanChecker.getArr();
+                    for(String[] val:booleanVars){
+                        Variable var = new Variable(val[0],val[1],val[2],scopeNum,false);
+                        AddVarToVars(scopeNum,val[0],var);
+                    }
                     break;
                 case "final":
 
@@ -232,8 +252,8 @@ public class Parser {
                         Variable RHS = variables.get(i).get(params[1]);
                         if (!RHS.getType().equals(LHS.getType())) {//check if types are legal
                             if (!((RHS.getType().equals("int") &&
-                                    (LHS.getType().equals("double") || LHS.getType().equals("boolean")))
-                                    || (RHS.getType().equals("double") && LHS.getType().equals("boolean")))) {
+                                    (LHS.getType().equals("double") || LHS.getType().equals(BOOLEAN_TYPE)))
+                                    || (RHS.getType().equals("double") && LHS.getType().equals(BOOLEAN_TYPE)))) {
                                 foundType = false;
                                 break;
                             } else {
@@ -260,7 +280,7 @@ public class Parser {
                         case "String":
                             p = Pattern.compile(TypeChecker.VALID_STRING_VALUE_REGEX);
                             break;
-                        case "boolean":
+                        case BOOLEAN_TYPE:
                             p = Pattern.compile(TypeChecker.VALID_BOOLEAN_VALUE_REGEX);
                             break;
                         case "char":
@@ -323,7 +343,7 @@ public class Parser {
                             //check if types are valid, if it isn't will throw exception
                             if (!methodType.equals(varType)) {
                                 if (!((varType.equals("int") && (methodType.equals("double") || methodType.equals(
-                                        "boolean"))) || (varType.equals("double") && methodType.equals("boolean")))) {
+                                        BOOLEAN_TYPE))) || (varType.equals("double") && methodType.equals(BOOLEAN_TYPE)))) {
                                     throw new IllegalMethodCall();
                                 }
                             }
@@ -358,7 +378,7 @@ public class Parser {
         Matcher charMatcher = charPattern.matcher(givenParams);
 
 
-        if (!((methodType.equals("boolean") && (intMatcher.find() || doubleMatcher.find() || boolMatcher.find()))
+        if (!((methodType.equals(BOOLEAN_TYPE) && (intMatcher.find() || doubleMatcher.find() || boolMatcher.find()))
                 || (methodType.equals("double") && (doubleMatcher.find() || boolMatcher.find()))
                 || (methodType.equals("int") && intMatcher.find())
                 || (methodType.equals("String") && stringMatcher.find())
@@ -385,7 +405,7 @@ public class Parser {
                         boolean goodType =
                                 var.getType().equals("int") ||
                                         var.getType().equals("double") ||
-                                        var.getType().equals("boolean");
+                                        var.getType().equals(BOOLEAN_TYPE);
                         if (param.equals(var.getName()) && (goodType)) {
                             foundGoodParam = true;
                             break;
