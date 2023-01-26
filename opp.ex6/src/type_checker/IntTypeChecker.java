@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 public class IntTypeChecker implements TypeChecker {
 
-    private static final String VALID_VALUE_REGEX = "^\\s*[-+]?(\\d+)*\\s*\\;?$";
+    private static final String VALID_VALUE_REGEX = "^\\s*[-]?(\\d+)*\\s*\\;?$";
 
     private static final String SEPARATE_LINE_REGEX = "^(.*?[^\\s])\\s*=\\s*(.*)$";
 
@@ -26,7 +26,7 @@ public class IntTypeChecker implements TypeChecker {
     private Pattern pattern;
     private Matcher matcher;
     private ArrayList<String[]> arr;
-
+    private HashMap<String, String> varsToFindLater;
 
     /**
      * constructor
@@ -40,6 +40,7 @@ public class IntTypeChecker implements TypeChecker {
         this.scopeLevel = scopeLevel;
         this.isFinal = isFinal;
         arr = new ArrayList<>();
+        varsToFindLater = new HashMap<>();
 
     }
 
@@ -81,16 +82,29 @@ public class IntTypeChecker implements TypeChecker {
         if (value != null) {
             Matcher matcher = valuePattern.matcher(value);
             if (!matcher.matches()) {
+
+                Matcher nameMatcher = namePattern.matcher(value);
+                if(!nameMatcher.matches()){
+                    throw new InvalidTypeException();
+                }
+
                 //check if already declared in earlier scope
                 boolean inPrevScope = checkScope(scopeLevel, value);
 
-                if (!inPrevScope) {
-
-
-                    throw new InvalidTypeException();
+                if (!inPrevScope && scopeLevel == 0) {
+                    varsToFindLater.put(value, INT_TYPE);
                 }
             }
         }
+    }
+
+    /**
+     * getter for array of variables to find later in file
+     *
+     * @return hashmap with key - name , value - type
+     */
+    public HashMap<String, String> getVarsToFindLater() {
+        return varsToFindLater;
     }
 
     public ArrayList<String[]> getArr() {

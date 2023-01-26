@@ -17,6 +17,7 @@ public class CharTypeChecker implements TypeChecker {
 
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
     private final ArrayList<String[]> arr;
+    private final HashMap<String, String> varsToFindLater;
     private boolean isFinal;
     private final int scopeLevel;
 
@@ -25,6 +26,7 @@ public class CharTypeChecker implements TypeChecker {
         this.scopeLevel = scopeLevel;
         this.isFinal=isFinal;
         this.arr=new ArrayList<String[]>();
+        this.varsToFindLater = new HashMap<>();
 
     }
 
@@ -39,15 +41,27 @@ public class CharTypeChecker implements TypeChecker {
 
 
             // check value
-            if (value != null) {
-                Matcher matcher = valuePattern.matcher(value);
-                if (!matcher.matches()) {
-                    throw new InvalidTypeException();
-                }
-            }
+            checkValue(value);
             arr.add(new String[]{name, CHAR_TYPE, value});
         }
 
+    }
+    private void checkValue(String value) throws InvalidTypeException {
+        if (value != null) {
+            Matcher matcher = valuePattern.matcher(value);
+            if (!matcher.matches()) {
+                Matcher nameMatcher = namePattern.matcher(value);
+                if(!nameMatcher.matches()){
+                    throw new InvalidTypeException();
+                }
+                //check if already declared in earlier scope
+                boolean inPrevScope = checkScope(scopeLevel, value);
+
+                if (!inPrevScope && scopeLevel == 0) {
+                    varsToFindLater.put(value, CHAR_TYPE);
+                }
+            }
+        }
     }
 
     public ArrayList<String[]> getArr() {

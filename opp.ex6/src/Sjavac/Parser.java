@@ -55,7 +55,10 @@ public class Parser {
     private Method curMethod; //is null if not in method and otherwise holds the current method of the scope
     private Matcher matcher;
 
-    private ArrayList<String >methodsToFind ;
+    private ArrayList<String>methodsToFind;
+
+    private HashMap<String,String>globalVarsToFind;
+
     private static final String SPLIT_LINE_METHOD =
             "^\\w+\\s+\\w+\\s*\\(([\\w\\s]+\\s+\\w+(,\\s*[\\w\\s]+\\s+\\w+)*)?\\)\\s*\\{\\s*$";//todo make sure 2
     // todo backslashes work
@@ -68,11 +71,12 @@ public class Parser {
         this.reader = reader;
         this.curMethod = null;
         this.methodsToFind = new ArrayList<>();
+        this.globalVarsToFind = new HashMap<>();
     }
 
 
     public void readFile() throws IOException, EndOfLineException, StartOfLineException,
-            IllegalMethodFormatException, InvalidTypeException, InvalidIfWhileBlock, MethodHasNoReturn, IllegalNestedMethod, IllegalMethodCall, VarNameAlreadyUsed, InvalidMethodNameException, InvalidVariableException, UndeclaredMethodException, AlreadyDeclaredFinalException {
+            IllegalMethodFormatException, InvalidTypeException, InvalidIfWhileBlock, MethodHasNoReturn, IllegalNestedMethod, IllegalMethodCall, VarNameAlreadyUsed, InvalidMethodNameException, InvalidVariableException, UndeclaredMethodException, AlreadyDeclaredFinalException, IllegalNumOfScopesException, GlobalVariableException {
         String line = reader.readLine();
         line = trimLine(line);
         while (line != null) {
@@ -87,7 +91,6 @@ public class Parser {
                 }
                 line = trimLine(line);
             }
-
 
             // check that line doesn't start with ; {
             pattern = Pattern.compile(INVALID_PREFIX_REGEX);
@@ -113,10 +116,19 @@ public class Parser {
             line = trimLine(line);
         }
 
-        // close stream
         if(methodsToFind.size()>0){
             throw new UndeclaredMethodException();
         }
+
+        if(globalVarsToFind.size()>0){
+            throw new GlobalVariableException();
+        }
+
+        if(scopeNum!=0){
+            throw new IllegalNumOfScopesException();
+        }
+
+        // close stream
         reader.close();
     }
 
@@ -165,6 +177,7 @@ public class Parser {
                 case DOUBLE_TYPE:
                 case STRING_TYPE:
                     checkNewVariable(first_word,line,scopeNum,false);
+                    break;
 
                 case FINAL_TYPE:
                     String []splitLine = line.split(" ");
@@ -178,7 +191,8 @@ public class Parser {
                         throw new InvalidReturn();
                     } else {
                         ReturnChecker returnChecker = new ReturnChecker(line);
-                        returnChecker.checkValidity();//If it doesn't throw exception means the cur method hase a return value
+                        returnChecker.checkValidity();
+                        //If it doesn't throw exception means the cur method has a return value
                         curMethod.hasReturn();
                     }
                     break;
@@ -188,7 +202,7 @@ public class Parser {
             }
 
         } else {
-//            boolean isVar = CheckVar(line);
+
             CheckMethodCall(line);
             if (!CheckVar(line)) {
                 throw new InvalidTypeException();
@@ -212,6 +226,9 @@ public class Parser {
             case INT_TYPE:
                 IntTypeChecker intTypeChecker = new IntTypeChecker(line, scopeNum, isFinal);
                 intTypeChecker.checkValidity();
+                if(intTypeChecker.getVarsToFindLater().size()>0){
+                    globalVarsToFind.putAll(intTypeChecker.getVarsToFindLater());
+                }
                 ArrayList<String[]> values = intTypeChecker.getArr();
                 for (String[] val : values) {
                     Variable var = new Variable(val[0], val[1], val[2], scopeNum, isFinal);
@@ -262,7 +279,8 @@ public class Parser {
         if(matcher.find()){return true;}
 
 //        Pattern assignVar = Pattern.compile("^\\s*[a-zA-Z_\\d]+\\s*=\\s*\\w+[a-zA-Z_\\d]*\\s*;\\s*$");
-        Pattern assignVar = Pattern.compile("\\s*[a-zA-Z_\\d]+\\s*=\\s*(\"[^\"]*\"|'[^']*'|\\w+[a-zA-Z_\\d]*)\\s*;\\s*$");
+        Pattern assignVar = Pattern.
+                compile("\\s*[a-zA-Z_\\d]+\\s*=\\s*(\"[^\"]*\"|'[^']*'|\\w+[a-zA-Z_\\d]*)\\s*;\\s*$");
 
         matcher = assignVar.matcher(line);
         boolean foundType = false;
@@ -523,7 +541,7 @@ public class Parser {
             variables.put(scopeNum, newHash);
         } else {
 
-            // check if variables map ha a submap for the current scope level
+            // check if variables map ha a sub-map for the current scope level
             if (!variables.containsKey(scopeNum)) {
                 HashMap<String, Variable> newHash = new HashMap<>();
                 variables.put(scopeNum, newHash);
@@ -534,6 +552,18 @@ public class Parser {
                 }
             } else {
                 variables.get(scopeNum).put(name, var);
+
+                // check if this (global) variable has been used earlier but not yet initialized
+                if(globalVarsToFind.containsKey(name)){
+                    if(!globalVarsToFind.get(name).equals(var.getType())){
+                        // if there is another variable with same name but different type
+                        throw new VarNameAlreadyUsed();
+                    }
+                    if(globalVarsToFind.get(name).equals(var.getType())){
+                        // if the previously used variable has been found - remove from map of vars to find
+                        globalVarsToFind.remove(name);
+                    }
+                }
             }
         }
     }

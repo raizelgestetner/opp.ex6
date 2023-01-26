@@ -18,6 +18,7 @@ public class BooleanTypeChecker implements TypeChecker {
     private final boolean isFinal;
     private final int scopeLevel;
     private ArrayList<String[]> arr;
+    private HashMap<String,String > varsToFindLater;
 
     ;
     public BooleanTypeChecker(String line,int scopeLevel,boolean isFinal) throws InvalidVariableException, VarNameAlreadyUsed {
@@ -25,6 +26,7 @@ public class BooleanTypeChecker implements TypeChecker {
         this.scopeLevel=scopeLevel;
         this.isFinal = isFinal;
         this.arr= new ArrayList<>();
+        this.varsToFindLater=new HashMap<>();
     }
 
     @Override
@@ -36,18 +38,34 @@ public class BooleanTypeChecker implements TypeChecker {
             // check name
             checkName(name);
 
-
             // check value
-            if (value != null) {
-                Matcher matcher = valuePattern.matcher(value);
-                if (!matcher.matches()) {
-                    throw new InvalidTypeException();
-                }
-            }
+            checkValue(value);
             arr.add(new String[]{name, BOOLEAN_TYPE, value});
         }
 
     }
+    private void checkValue(String value) throws InvalidTypeException {
+        if (value != null) {
+            Matcher matcher = valuePattern.matcher(value);
+            if (!matcher.matches()) {
+                Matcher nameMatcher = namePattern.matcher(value);
+                if(!nameMatcher.matches()){
+                    throw new InvalidTypeException();
+                }
+                //check if already declared in earlier scope
+                boolean inPrevScope = checkScope(scopeLevel, value);
+
+                if (!inPrevScope && scopeLevel == 0) {
+                    varsToFindLater.put(value, BOOLEAN_TYPE);
+                }
+            }
+        }
+    }
+
+    public HashMap<String, String> getVarsToFindLater() {
+        return varsToFindLater;
+    }
+
     public boolean isFinal() {
         return isFinal;
     }

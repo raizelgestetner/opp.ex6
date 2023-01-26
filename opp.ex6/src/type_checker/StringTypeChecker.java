@@ -11,13 +11,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class StringTypeChecker implements TypeChecker {
-    public static final String STRING_TYPE = "String";
+    private static final String STRING_TYPE = "String";
     private final HashMap<String, String> varsToCheck;
     private static final String VALID_VALUE_REGEX = "\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\"";
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
     private final int scopeLevel;
     private final boolean isFinal;
     private ArrayList<String[]> arr;
+    private HashMap<String,String> varsToFindLater;
 
     /**
      * constructor
@@ -31,9 +32,14 @@ public class StringTypeChecker implements TypeChecker {
         this.scopeLevel = scopeLevel;
         this.isFinal = isFinal ;
         this.arr =new ArrayList<>();
+        this.varsToFindLater = new HashMap<>();
 
     }
 
+    /**
+     * getter
+     * @return arraylist</String[]>
+     */
     public ArrayList<String[]> getArr() {
         return arr;
     }
@@ -50,18 +56,42 @@ public class StringTypeChecker implements TypeChecker {
 
 
             // check value
-            if (value != null) {
-                Matcher matcher = valuePattern.matcher(value);
-                if (!matcher.matches()) {
-                    throw new InvalidTypeException();
-                }
-            }
+            checkValue(value);
 
             arr.add(new String[]{name, STRING_TYPE, value});
 
         }
 
     }
+
+    /**
+     * checks value of variable
+     * @param value value of variable to be checked
+     * @throws InvalidTypeException
+     */
+    private void checkValue(String value) throws InvalidTypeException {
+        if (value != null) {
+            Matcher matcher = valuePattern.matcher(value);
+            Matcher nameMatcher = namePattern.matcher(value);
+
+            if (!matcher.matches()) {
+                if(!nameMatcher.matches()){
+                    throw new InvalidTypeException();
+                }
+                //check if already declared in earlier scope
+                boolean inPrevScope = checkScope(scopeLevel, value);
+
+                if (!inPrevScope && scopeLevel == 0) {
+                    varsToFindLater.put(value, STRING_TYPE);
+                }
+            }
+        }
+    }
+
+    /**
+     * getter for boolean isFinal
+     * @return true or false
+     */
     public boolean isFinal() {
         return isFinal;
     }

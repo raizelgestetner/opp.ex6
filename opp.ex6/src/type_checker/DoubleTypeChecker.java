@@ -20,6 +20,7 @@ public class DoubleTypeChecker implements TypeChecker {
     private HashMap<String, String> varsToCheck;
     private Matcher matcher;
     private ArrayList<String[]> arr;
+    private HashMap<String,String> varsToFindLater;
 
     /**
      * constructor
@@ -33,6 +34,7 @@ public class DoubleTypeChecker implements TypeChecker {
         this.scopeLevel = scopeLevel;
         this.isFinal = isFinal;
         arr = new ArrayList<>();
+        varsToFindLater=new HashMap<>();
 
 
     }
@@ -52,17 +54,25 @@ public class DoubleTypeChecker implements TypeChecker {
             checkName(name);
 
             // check value
-            if (value != null) {
-                Matcher matcher = valuePattern.matcher(value);
-                if (!matcher.matches()) {
-                    throw new InvalidTypeException();
-                }
-            }
 
-//            Variable newVar = new Variable(name, DOUBLE_TYPE,value,scopeLevel,isFinal);
-//            Parser.variables.get(scopeLevel).put(name,newVar);
+            checkValue(value);
+
             arr.add(new String[]{name, DOUBLE_TYPE, value});
 
+        }
+    }
+
+    private void checkValue(String value) {
+        if (value != null) {
+            Matcher matcher = valuePattern.matcher(value);
+            if (!matcher.matches()) {
+                //check if already declared in earlier scope
+                boolean inPrevScope = checkScope(scopeLevel, value);
+
+                if (!inPrevScope && scopeLevel == 0) {
+                    varsToFindLater.put(value, DOUBLE_TYPE);
+                }
+            }
         }
     }
 
