@@ -47,6 +47,7 @@ public class Parser {
     private Method curMethod; //is null if not in method and otherwise holds the current method of the scope
     private Matcher matcher;
 
+    private ArrayList<String >methodsToFind ;
     private static final String SPLIT_LINE_METHOD =
             "^\\w+\\s+\\w+\\s*\\(([\\w\\s]+\\s+\\w+(,\\s*[\\w\\s]+\\s+\\w+)*)?\\)\\s*\\{\\s*$";//todo make sure 2
     // todo backslashes work
@@ -58,11 +59,12 @@ public class Parser {
     public Parser(BufferedReader reader) {
         this.reader = reader;
         this.curMethod = null;
+        this.methodsToFind = new ArrayList<>();
     }
 
 
     public void readFile() throws IOException, EndOfLineException, StartOfLineException,
-            IllegalMethodFormatException, InvalidTypeException, InvalidIfWhileBlock, MethodHasNoReturn, IllegalNestedMethod, IllegalMethodCall, VarNameAlreadyUsed, InvalidMethodName, InvalidVariableException {
+            IllegalMethodFormatException, InvalidTypeException, InvalidIfWhileBlock, MethodHasNoReturn, IllegalNestedMethod, IllegalMethodCall, VarNameAlreadyUsed, InvalidMethodName, InvalidVariableException, UndeclaredMethodException {
         String line = reader.readLine();
         line = trimLine(line);
         while (line != null) {
@@ -104,8 +106,10 @@ public class Parser {
             line = trimLine(line);
         }
 
-
         // close stream
+        if(methodsToFind.size()>0){
+            throw new UndeclaredMethodException();
+        }
         reader.close();
     }
 
@@ -161,6 +165,13 @@ public class Parser {
                     }
                     break;
                 case "double":
+                    DoubleTypeChecker doubleTypeChecker = new DoubleTypeChecker(line,scopeNum,false);
+                    doubleTypeChecker.checkValidity();
+                    ArrayList<String[]>dValues = doubleTypeChecker.getArr();
+                    for(String[]val:dValues){
+                        Variable var = new Variable(val[0],val[1],val[2],scopeNum,false);
+                        AddVarToVars(scopeNum,val[0],var);
+                    }
                     break;
                 case "String":
 
@@ -195,8 +206,12 @@ public class Parser {
     }
 
     private boolean CheckVar(String line) throws InvalidTypeException {
+        // if line is a method call return true
+        Pattern methodCallPattern = Pattern.compile(MATHOS_CALL_PATTERN);
+        Matcher matcher = methodCallPattern.matcher(line);
+        if(matcher.find()){return true;}
         Pattern assignVar = Pattern.compile("^\\s*[a-zA-Z_\\d]+\\s*=\\s*\\w+[a-zA-Z_\\d]*\\s*;\\s*$");
-        Matcher matcher = assignVar.matcher(line);
+        matcher = assignVar.matcher(line);
         boolean foundType = false;
         if (matcher.find()) {
             line = line.replaceAll("\\s*;\\s*", "");
@@ -279,10 +294,10 @@ public class Parser {
         Pattern methodCallPattern = Pattern.compile(MATHOS_CALL_PATTERN);
         Matcher matcher = methodCallPattern.matcher(line);
         if (matcher.find()) {
-            String[] splittedLine = line.split(SPLIT_BY_PARENTHESES);
-            if (methodsList.containsKey(splittedLine[0])) { //check if method name is valid
-                Method method = methodsList.get(splittedLine[0]);
-                String[] givenParams = splittedLine[1].split(SPLIT_BY_COMMA);
+            String[] splitLine = line.split(SPLIT_BY_PARENTHESES);
+            if (methodsList.containsKey(splitLine[0])) { //check if method name is valid
+                Method method = methodsList.get(splitLine[0]);
+                String[] givenParams = splitLine[1].split(SPLIT_BY_COMMA);
                 HashMap<String, Variable> methodParameters = method.getMethodParameters();
                 if (givenParams.length != methodParameters.size()) { //check num of params given is valid
                     throw new IllegalMethodCall();
@@ -323,6 +338,11 @@ public class Parser {
                     }
                 }
 
+
+            }
+            // I added this code to check if method appears later in file
+            else{
+                methodsToFind.add(splitLine[0]);
 
             }
         }
@@ -404,6 +424,12 @@ public class Parser {
                     methodChecker.checkValidity();
                     throwException = methodChecker.getThrowException();
                     methodsList.put(method_name, methodChecker.getMethod());
+
+                    // check if method is in list of undeclared methods and remove from list
+                    if(methodsToFind.contains(method_name)){
+                        methodsToFind.remove(method_name);
+                    }
+
                     curMethod = methodChecker.getMethod();
                     scopeNum++;
                 }

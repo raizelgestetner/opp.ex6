@@ -4,13 +4,14 @@ import Sjavac.Parser;
 import Sjavac.Variable;
 import com.sun.jdi.InvalidTypeException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DoubleTypeChecker implements TypeChecker {
-    private static final String VALID_VALUE_REGEX = "-?\\\\d+(\\\\.\\\\d+)?";
+    private static final String VALID_VALUE_REGEX = "-?\\d+(\\.\\d+)?";
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
     private static final String DOUBLE_TYPE = "double";
     private final int scopeLevel;
@@ -18,6 +19,7 @@ public class DoubleTypeChecker implements TypeChecker {
 
     private HashMap<String, String> varsToCheck;
     private Matcher matcher;
+    private ArrayList<String[]> arr;
 
     /**
      * constructor
@@ -30,6 +32,8 @@ public class DoubleTypeChecker implements TypeChecker {
         varsToCheck = splitLine(line,scopeLevel);
         this.scopeLevel = scopeLevel;
         this.isFinal = isFinal;
+        arr = new ArrayList<>();
+
 
     }
 
@@ -55,8 +59,15 @@ public class DoubleTypeChecker implements TypeChecker {
                 }
             }
 
-            Variable newVar = new Variable(name, DOUBLE_TYPE,value,scopeLevel,isFinal);
-            Parser.variables.get(scopeLevel).put(name,newVar);
+//            Variable newVar = new Variable(name, DOUBLE_TYPE,value,scopeLevel,isFinal);
+//            Parser.variables.get(scopeLevel).put(name,newVar);
+            arr.add(new String[]{name, DOUBLE_TYPE, value});
+
         }
     }
+
+    public ArrayList<String[]> getArr() {
+        return arr;
+    }
+
 }

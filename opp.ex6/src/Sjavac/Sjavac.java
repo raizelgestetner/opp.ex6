@@ -13,12 +13,13 @@ public class Sjavac {
     private static final int LEGAL_CODE = 0;
     private static final int ILLEGAL_CODE = 1;
     private static final int IO_ERROR = 2;
-    public static final String INVALID_TYPE_EXCEPTION_MSG = "Invalid type exception";
-    public static final String ILLEGAL_START_OF_LINE = "Illegal start of line";
-    public static final String ILLEGAL_METHOD_FORMAT_MSG = "Illegal method format";
-    public static final String ILLEGAL_IF_WHILE_BLOCK_MSG = "Illegal if while block";
-    public static final String RETURN_ERROR_MSG = "Method must have return at end of the method";
-    public static final String ILLEGAL_VARIABLE_DECLARATION_MSG = "Illegal variable declaration";
+    private static final String INVALID_TYPE_EXCEPTION_MSG = "Invalid type exception";
+    private static final String ILLEGAL_START_OF_LINE = "Illegal start of line";
+    private static final String ILLEGAL_METHOD_FORMAT_MSG = "Illegal method format";
+    private static final String ILLEGAL_IF_WHILE_BLOCK_MSG = "Illegal if while block";
+    private static final String RETURN_ERROR_MSG = "Method must have return at end of the method";
+    private static final String ILLEGAL_VARIABLE_DECLARATION_MSG = "Illegal variable declaration";
+    private static final String ILLEGAL_NESTED_METHOD_MSG = "Nested methods are illegal";
 
     public static void main(String[] fileName) {
 
@@ -69,7 +70,7 @@ public class Sjavac {
             System.err.println(RETURN_ERROR_MSG);
         } catch (IllegalNestedMethod e) {
             System.out.println(ILLEGAL_CODE);
-            System.err.println("Nested methods are illegal");
+            System.err.println(ILLEGAL_NESTED_METHOD_MSG);
 
         } catch (IllegalMethodCall e) {
             System.out.println(ILLEGAL_CODE);
@@ -83,6 +84,10 @@ public class Sjavac {
             System.out.println(ILLEGAL_CODE);
             System.err.println("Method name is not valid");
 
+        }
+        catch(UndeclaredMethodException e){
+            System.out.println(ILLEGAL_CODE);
+            System.err.println("undeclared method error");
         }
     }
 

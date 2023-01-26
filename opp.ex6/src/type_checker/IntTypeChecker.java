@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 
 public class IntTypeChecker implements TypeChecker {
 
-    private static final String VALID_VALUE_REGEX = "^\\s*[-+]?(\\d+)*\\s*$";
+    private static final String VALID_VALUE_REGEX = "^\\s*[-+]?(\\d+)*\\s*\\;?$";
 
     private static final String SEPARATE_LINE_REGEX = "^(.*?[^\\s])\\s*=\\s*(.*)$";
 

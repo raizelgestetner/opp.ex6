@@ -13,6 +13,8 @@ public interface TypeChecker {
     String SEPARATE_LINE_REGEX = "(^\\s*\\w+\\s+([a-zA-Z_][a-zA-Z\\d_]*)\\s*=" +
             "\\s*([a-zA-Z_+\\-]?[a-zA-Z\\d_]*)\\s*;\\s*$)|" +
             "(^\\s*\\w+\\s+([a-zA-Z_][a-zA-Z\\d_]*)\\s*;\\s*$)";
+//    String SEPARATE_LINE_REGEX ="([a-zA-Z]+)\\s+((_?[a-zA-Z]+[\\w]*)\\s*(=\\s*([^,;]+))?\\s*(,\\s*" +
+//        "(_?[a-zA-Z]+[\\w]*)\\s*(=\\s*([^,;]+))?\\s*)*)\\s*;";
     Pattern separateLinePattern = Pattern.compile(SEPARATE_LINE_REGEX);
     String VALID_NAME_REGEX = "^(?!\\d)[a-zA-Z_][a-zA-Z\\d_]*$";
     Pattern namePattern = Pattern.compile(VALID_NAME_REGEX);
@@ -35,23 +37,30 @@ public interface TypeChecker {
      */
     default HashMap<String, String> splitLine(String line, int scopeLevel) throws InvalidVariableException {
         HashMap<String, String> varList = new HashMap<>();
+        line = line.replaceFirst("\\b\\w+\\b","");
+        line = line.replaceAll(";$","");
+        String[] splitLine = line.split(",");
+        for (String line1 :splitLine){
+//        Matcher matcher = separateLinePattern.matcher(line1);
 
-        Matcher matcher = separateLinePattern.matcher(line);
+        Pattern pattern2 = Pattern.compile("\\s*(.*)\\s+=\\s+(.*)|\\s*(.*)");
+        Matcher matcher =pattern2.matcher(line1);
 
-        if(!matcher.find()){
-            throw new InvalidVariableException();
-        }
-        while (matcher.find()) {
+            if (matcher.find()) {
 
-            if (Parser.variables.size() <= scopeLevel || !Parser.variables.get(scopeLevel).containsKey(matcher.group(1))) {
-                if (line.contains("=")) {
-                    varList.put(matcher.group(2), matcher.group(3));
+            if (!Parser.variables.containsKey(scopeLevel) ||
+                    !Parser.variables.get(scopeLevel).containsKey(matcher.group(3).trim())) {
+                if (line1.contains(" = ")) {
+                    varList.put(matcher.group(1).trim(), matcher.group(2).trim());
                 } else {
-                    varList.put(matcher.group(5), null);
+                    varList.put(matcher.group(3).trim(), null);
                 }
             }
 
-
+        }
+        }
+        if(varList.size() == 0){
+            throw new InvalidVariableException();
         }
 
         return varList;
