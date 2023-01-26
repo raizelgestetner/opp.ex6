@@ -25,7 +25,7 @@ public class IntTypeChecker implements TypeChecker {
     private HashMap<String, String> varsToCheck;
     private Pattern pattern;
     private Matcher matcher;
-    private ArrayList<String[]> arr ;
+    private ArrayList<String[]> arr;
 
 
     /**
@@ -33,10 +33,10 @@ public class IntTypeChecker implements TypeChecker {
      *
      * @param line line to be checked
      */
-    public IntTypeChecker(String line,int scopeLevel,boolean isFinal) throws InvalidVariableException {
+    public IntTypeChecker(String line, int scopeLevel, boolean isFinal) throws InvalidVariableException, VarNameAlreadyUsed {
 
         // split line into names and values
-        varsToCheck = splitLine(line,scopeLevel);
+        varsToCheck = splitLine(line, scopeLevel);
         this.scopeLevel = scopeLevel;
         this.isFinal = isFinal;
         arr = new ArrayList<>();
@@ -68,9 +68,13 @@ public class IntTypeChecker implements TypeChecker {
 
     }
 
+    public boolean isFinal() {
+        return isFinal;
+    }
+
     public IntTypeChecker() {
-        scopeLevel=0;
-        isFinal=false;
+        scopeLevel = 0;
+        isFinal = false;
     }
 
     private void checkValue(String value) throws InvalidTypeException {
@@ -78,12 +82,13 @@ public class IntTypeChecker implements TypeChecker {
             Matcher matcher = valuePattern.matcher(value);
             if (!matcher.matches()) {
                 //check if already declared in earlier scope
-                boolean inPrevScope= checkScope(scopeLevel,value);
+                boolean inPrevScope = checkScope(scopeLevel, value);
 
-                if(!inPrevScope){
+                if (!inPrevScope) {
 
 
-                throw new InvalidTypeException();}
+                    throw new InvalidTypeException();
+                }
             }
         }
     }

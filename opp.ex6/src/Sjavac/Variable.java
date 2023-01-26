@@ -25,6 +25,14 @@ public class Variable {
         this.isFinal = isFinal;
     }
 
+    public boolean isFinal() {
+        return isFinal;
+    }
+
+    public int getScopeNum() {
+        return scopeNum;
+    }
+
     /**
      * constructor
      *

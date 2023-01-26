@@ -26,10 +26,10 @@ public class DoubleTypeChecker implements TypeChecker {
      *
      * @param line line to be checked
      */
-    public DoubleTypeChecker(String line,int scopeLevel,boolean isFinal) throws InvalidVariableException {
+    public DoubleTypeChecker(String line, int scopeLevel, boolean isFinal) throws InvalidVariableException, VarNameAlreadyUsed {
 
         // split line into names and values
-        varsToCheck = splitLine(line,scopeLevel);
+        varsToCheck = splitLine(line, scopeLevel);
         this.scopeLevel = scopeLevel;
         this.isFinal = isFinal;
         arr = new ArrayList<>();
@@ -64,6 +64,10 @@ public class DoubleTypeChecker implements TypeChecker {
             arr.add(new String[]{name, DOUBLE_TYPE, value});
 
         }
+    }
+
+    public boolean isFinal() {
+        return isFinal;
     }
 
     public ArrayList<String[]> getArr() {

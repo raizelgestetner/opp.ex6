@@ -1,7 +1,7 @@
 package Sjavac;
 
 import com.sun.jdi.InvalidTypeException;
-import type_checker.InvalidMethodName;
+import type_checker.InvalidMethodNameException;
 import type_checker.InvalidVariableException;
 import type_checker.VarNameAlreadyUsed;
 
@@ -80,10 +80,14 @@ public class Sjavac {
         } catch (VarNameAlreadyUsed e) {
             System.out.println(ILLEGAL_CODE);
             System.err.println("Vars can't have same name as other declared before");
-        } catch (InvalidMethodName e) {
+        } catch (InvalidMethodNameException e) {
             System.out.println(ILLEGAL_CODE);
             System.err.println("Method name is not valid");
 
+        }
+        catch (AlreadyDeclaredFinalException e){
+            System.out.println(ILLEGAL_CODE);
+            System.err.println("can't change final value");
         }
         catch(UndeclaredMethodException e){
             System.out.println(ILLEGAL_CODE);

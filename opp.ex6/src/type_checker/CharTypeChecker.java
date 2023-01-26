@@ -20,7 +20,7 @@ public class CharTypeChecker implements TypeChecker {
     private boolean isFinal;
     private final int scopeLevel;
 
-    public CharTypeChecker(String line,int scopeLevel,boolean isFinal) throws InvalidVariableException {
+    public CharTypeChecker(String line,int scopeLevel,boolean isFinal) throws InvalidVariableException, VarNameAlreadyUsed {
         varsToCheck =splitLine(line,scopeLevel);
         this.scopeLevel = scopeLevel;
         this.isFinal=isFinal;
@@ -52,5 +52,9 @@ public class CharTypeChecker implements TypeChecker {
 
     public ArrayList<String[]> getArr() {
         return arr;
+    }
+
+    public boolean isFinal() {
+        return isFinal;
     }
 }

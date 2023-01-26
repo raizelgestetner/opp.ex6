@@ -34,12 +34,12 @@ public class MethodChecker implements TypeChecker {
     }
 
     @Override
-    public void checkValidity() throws InvalidTypeException, InvalidMethodName {
+    public void checkValidity() throws InvalidTypeException, InvalidMethodNameException {
         HashMap<String, Variable> varMap = new HashMap<>();
         checkMethodName();
         //check if method name is valid . if valid - continue, if not-return
         if(throwException){
-            throw new InvalidMethodName();
+            throw new InvalidMethodNameException();
         }
         if (params != null) {
 

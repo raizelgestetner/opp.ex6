@@ -24,7 +24,7 @@ public class StringTypeChecker implements TypeChecker {
      *
      * @param line line to be checked
      */
-    public StringTypeChecker(String line,int scopeLevel,boolean isFinal) throws InvalidVariableException {
+    public StringTypeChecker(String line,int scopeLevel,boolean isFinal) throws InvalidVariableException, VarNameAlreadyUsed {
 
         // split line into names and values
         varsToCheck = splitLine(line,scopeLevel);
@@ -61,5 +61,8 @@ public class StringTypeChecker implements TypeChecker {
 
         }
 
+    }
+    public boolean isFinal() {
+        return isFinal;
     }
 }

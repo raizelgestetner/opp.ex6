@@ -13,7 +13,7 @@ public interface TypeChecker {
     String SEPARATE_LINE_REGEX = "(^\\s*\\w+\\s+([a-zA-Z_][a-zA-Z\\d_]*)\\s*=" +
             "\\s*([a-zA-Z_+\\-]?[a-zA-Z\\d_]*)\\s*;\\s*$)|" +
             "(^\\s*\\w+\\s+([a-zA-Z_][a-zA-Z\\d_]*)\\s*;\\s*$)";
-//    String SEPARATE_LINE_REGEX ="([a-zA-Z]+)\\s+((_?[a-zA-Z]+[\\w]*)\\s*(=\\s*([^,;]+))?\\s*(,\\s*" +
+    //    String SEPARATE_LINE_REGEX ="([a-zA-Z]+)\\s+((_?[a-zA-Z]+[\\w]*)\\s*(=\\s*([^,;]+))?\\s*(,\\s*" +
 //        "(_?[a-zA-Z]+[\\w]*)\\s*(=\\s*([^,;]+))?\\s*)*)\\s*;";
     Pattern separateLinePattern = Pattern.compile(SEPARATE_LINE_REGEX);
     String VALID_NAME_REGEX = "^(?!\\d)[a-zA-Z_][a-zA-Z\\d_]*$";
@@ -25,8 +25,7 @@ public interface TypeChecker {
     String VALID_STRING_VALUE_REGEX = "\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\"";
 
 
-
-    void checkValidity() throws InvalidTypeException, VarNameAlreadyUsed, InvalidMethodName;
+    void checkValidity() throws InvalidTypeException, VarNameAlreadyUsed, InvalidMethodNameException;
 
     /**
      * this function splits the given line into names and values or variables. and checks that these names weren't
@@ -35,31 +34,41 @@ public interface TypeChecker {
      * @param line line to be split
      * @return hashmap with names of variables as keys and their value (if value was initialized, else value is null)
      */
-    default HashMap<String, String> splitLine(String line, int scopeLevel) throws InvalidVariableException {
+    default HashMap<String, String> splitLine(String line, int scopeLevel) throws InvalidVariableException, VarNameAlreadyUsed {
         HashMap<String, String> varList = new HashMap<>();
-        line = line.replaceFirst("\\b\\w+\\b","");
-        line = line.replaceAll(";$","");
+        line = line.replaceFirst("\\b\\w+\\b\\s*", "");
+        line = line.replaceAll(";$", "");
         String[] splitLine = line.split(",");
-        for (String line1 :splitLine){
+        for (String line1 : splitLine) {
 //        Matcher matcher = separateLinePattern.matcher(line1);
 
-        Pattern pattern2 = Pattern.compile("\\s*(.*)\\s+=\\s+(.*)|\\s*(.*)");
-        Matcher matcher =pattern2.matcher(line1);
+            Pattern pattern2 = Pattern.compile("\\s*(.*)\\s+=\\s+(.*)|\\s*(.*)");
+            Matcher matcher = pattern2.matcher(line1);
 
             if (matcher.find()) {
 
-            if (!Parser.variables.containsKey(scopeLevel) ||
-                    !Parser.variables.get(scopeLevel).containsKey(matcher.group(3).trim())) {
+//                if (!Parser.variables.containsKey(scopeLevel) ||
+//                        !Parser.variables.get(scopeLevel).containsKey(matcher.group(3).trim()))
                 if (line1.contains(" = ")) {
+                    if (Parser.variables.containsKey(scopeLevel)) {
+                        if (Parser.variables.get(scopeLevel).containsKey(matcher.group(1).trim())) {
+                            // check if variable is final
+                            Variable oldVar = Parser.variables.get(scopeLevel).get(matcher.group(1).trim());
+                            if (oldVar.isFinal()) {
+                                throw new VarNameAlreadyUsed();
+                            }
+                        }
+
+                    }
                     varList.put(matcher.group(1).trim(), matcher.group(2).trim());
                 } else {
                     varList.put(matcher.group(3).trim(), null);
                 }
-            }
 
+
+            }
         }
-        }
-        if(varList.size() == 0){
+        if (varList.size() == 0) {
             throw new InvalidVariableException();
         }
 
@@ -74,13 +83,14 @@ public interface TypeChecker {
     }
 
 
-    default boolean checkScope(int scopeLevel,String val){
-        for (int i=scopeLevel;i>=0;i--){
-            HashMap<String, Variable > scopeLevelVarMap = Parser.variables.get(i);
+    default boolean checkScope(int scopeLevel, String val) {
+        for (int i = scopeLevel; i >= 0; i--) {
+            HashMap<String, Variable> scopeLevelVarMap = Parser.variables.get(i);
 
-            if(scopeLevelVarMap!=null){
-            if(scopeLevelVarMap.containsKey(val)){
-                return true;}
+            if (scopeLevelVarMap != null) {
+                if (scopeLevelVarMap.containsKey(val)) {
+                    return true;
+                }
             }
 
         }

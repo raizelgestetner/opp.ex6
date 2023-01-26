@@ -20,7 +20,7 @@ public class BooleanTypeChecker implements TypeChecker {
     private ArrayList<String[]> arr;
 
     ;
-    public BooleanTypeChecker(String line,int scopeLevel,boolean isFinal) throws InvalidVariableException {
+    public BooleanTypeChecker(String line,int scopeLevel,boolean isFinal) throws InvalidVariableException, VarNameAlreadyUsed {
         varsToCheck=splitLine(line,scopeLevel);
         this.scopeLevel=scopeLevel;
         this.isFinal = isFinal;
@@ -48,7 +48,9 @@ public class BooleanTypeChecker implements TypeChecker {
         }
 
     }
-
+    public boolean isFinal() {
+        return isFinal;
+    }
     public ArrayList<String[]> getArr() {
         return arr;
     }

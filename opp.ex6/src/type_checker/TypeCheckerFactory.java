@@ -29,7 +29,7 @@ public class TypeCheckerFactory {
 
     public TypeChecker getType(String variableType, String line, int scopeLevel, String name,
                                boolean isFinal )
-            throws InvalidTypeException, InvalidVariableException {
+            throws InvalidTypeException, InvalidVariableException, VarNameAlreadyUsed {
          switch (variableType) {
              case INT_TYPE:
                  return new IntTypeChecker(line,scopeLevel,isFinal);
@@ -57,7 +57,8 @@ public class TypeCheckerFactory {
 
     }
 
-    private TypeChecker checkNextWord(String line ,int scopeLevel) throws InvalidTypeException, InvalidVariableException {
+    private TypeChecker checkNextWord(String line ,int scopeLevel) throws InvalidTypeException
+            , InvalidVariableException, VarNameAlreadyUsed {
         Pattern pattern = Pattern.compile("final\\s+(\\w+)");
         Matcher match = pattern.matcher(line);
         int start = match.start();

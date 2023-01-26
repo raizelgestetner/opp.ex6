@@ -7,7 +7,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.SimpleTimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +16,7 @@ import java.util.regex.Pattern;
 public class Parser {
     public static final String REGEX_OPEN_PARENTHESIS = "\\(";
     public static final String VALID_LINE_PREFIX = "^\\s*(if|while|void|char|String|boolean|double|return" +
+            "|final" +
             "|int|})\\s*";
     public static final String MATHOS_CALL_PATTERN = "^\\s*[a-zA-z\\d]+\\s*\\(.*\\);\\s*$";
     public static final String SPLIT_BY_PARENTHESES = "\\s*\\(\\s*|\\s*\\)\\s*";
@@ -27,6 +27,12 @@ public class Parser {
     public static final String STRING_REGEX = "^\\s*[a-zA-Z_\\d]*\\s*$";
     public static final String CHAR_REGEX = "^\\s*'.'\\s*$";
     private static final String BOOLEAN_TYPE = "boolean";
+    public static final String STRING_TYPE = "String";
+    public static final String DOUBLE_TYPE = "double";
+    public static final String CHAR_TYPE = "char";
+    public static final String INT_TYPE = "int";
+    public static final String RETURN_TYPE = "return";
+    public static final String FINAL_TYPE = "final";
 
     private final Pattern intPattern = Pattern.compile(INT_REGEX);
     private final Pattern doublePattern = Pattern.compile(DOUBLE_REGEX);
@@ -66,7 +72,7 @@ public class Parser {
 
 
     public void readFile() throws IOException, EndOfLineException, StartOfLineException,
-            IllegalMethodFormatException, InvalidTypeException, InvalidIfWhileBlock, MethodHasNoReturn, IllegalNestedMethod, IllegalMethodCall, VarNameAlreadyUsed, InvalidMethodName, InvalidVariableException, UndeclaredMethodException {
+            IllegalMethodFormatException, InvalidTypeException, InvalidIfWhileBlock, MethodHasNoReturn, IllegalNestedMethod, IllegalMethodCall, VarNameAlreadyUsed, InvalidMethodNameException, InvalidVariableException, UndeclaredMethodException, AlreadyDeclaredFinalException {
         String line = reader.readLine();
         line = trimLine(line);
         while (line != null) {
@@ -102,7 +108,6 @@ public class Parser {
             // check that content of line is valid
             checkLine(line);
 
-
             line = reader.readLine(); // todo: this ignors empty lines and then when return is not the last
             // todo: line before the end of method but an empty line
             line = trimLine(line);
@@ -129,7 +134,7 @@ public class Parser {
      * @param line line to check
      */
     private void checkLine(String line) throws IllegalMethodFormatException, InvalidTypeException,
-            InvalidIfWhileBlock, MethodHasNoReturn, IllegalNestedMethod, IllegalMethodCall, VarNameAlreadyUsed, InvalidMethodName, InvalidVariableException {
+            InvalidIfWhileBlock, MethodHasNoReturn, IllegalNestedMethod, IllegalMethodCall, VarNameAlreadyUsed, InvalidMethodNameException, InvalidVariableException, AlreadyDeclaredFinalException {
         Pattern pattern = Pattern.compile(VALID_LINE_PREFIX);
         Matcher matcher = pattern.matcher(line);
         if (matcher.find()) {
@@ -147,62 +152,28 @@ public class Parser {
                 case "void":
                     checkMethodLine(line);
 //                    scopeNum++;
-
                     break;
                 case "if":
                 case "while":
                     curMethod = null;
                     checkIfWhile(line);
                     break;
-                case "char":
-                    CharTypeChecker charChecker = new CharTypeChecker(line,scopeNum,false);
-                    charChecker.checkValidity();
-                    ArrayList<String[]>charVals = charChecker.getArr();
-                    for (String [] val :charVals){
-                        Variable var = new Variable(val[0],val[1],val[2],scopeNum,false);
-                        AddVarToVars(scopeNum,val[0],var);
-                    }
-                    break;
-                case "int":
-                    IntTypeChecker intTypeChecker = new IntTypeChecker(line, scopeNum, false);
-                    intTypeChecker.checkValidity();
-                    ArrayList<String[]> values = intTypeChecker.getArr();
-                    for (String[] val : values) {
-                        Variable var = new Variable(val[0], val[1], val[2], scopeNum, false);
-                        AddVarToVars(scopeNum, val[0], var);
-                    }
-                    break;
-                case "double":
-                    DoubleTypeChecker doubleTypeChecker = new DoubleTypeChecker(line,scopeNum,false);
-                    doubleTypeChecker.checkValidity();
-                    ArrayList<String[]>dValues = doubleTypeChecker.getArr();
-                    for(String[]val:dValues){
-                        Variable var = new Variable(val[0],val[1],val[2],scopeNum,false);
-                        AddVarToVars(scopeNum,val[0],var);
-                    }
-                    break;
-                case "String":
-                    StringTypeChecker stringTypeChecker= new StringTypeChecker(line,scopeNum,false);
-                    stringTypeChecker.checkValidity();
-                    ArrayList<String[] > sValues = stringTypeChecker.getArr();
-                    for(String[]val:sValues){
-                        Variable var = new Variable(val[0],val[1],val[2],scopeNum,false);
-                        AddVarToVars(scopeNum,val[0],var);
-                    }
-                    break;
-                case BOOLEAN_TYPE:
-                    BooleanTypeChecker booleanChecker = new BooleanTypeChecker(line,scopeNum,false);
-                    booleanChecker.checkValidity();
-                    ArrayList<String[]> booleanVars = booleanChecker.getArr();
-                    for(String[] val:booleanVars){
-                        Variable var = new Variable(val[0],val[1],val[2],scopeNum,false);
-                        AddVarToVars(scopeNum,val[0],var);
-                    }
-                    break;
-                case "final":
 
+                case CHAR_TYPE:
+                case INT_TYPE:
+                case BOOLEAN_TYPE:
+                case DOUBLE_TYPE:
+                case STRING_TYPE:
+                    checkNewVariable(first_word,line,scopeNum,false);
+
+                case FINAL_TYPE:
+                    String []splitLine = line.split(" ");
+                    String type = splitLine[1];
+                    line = line.replaceFirst("final ","");
+
+                    checkNewVariable(type,line,scopeNum,true);
                     break;
-                case "return":
+                case RETURN_TYPE:
                     if (scopeNum == 0) {
                         throw new InvalidReturn();
                     } else {
@@ -225,12 +196,74 @@ public class Parser {
         }
     }
 
-    private boolean CheckVar(String line) throws InvalidTypeException {
+
+    private void checkNewVariable(String vartype,String line,int scopeNum,boolean isFinal)
+            throws InvalidTypeException, InvalidVariableException, VarNameAlreadyUsed {
+        switch(vartype){
+            case CHAR_TYPE:
+                CharTypeChecker charChecker = new CharTypeChecker(line,scopeNum,isFinal);
+                charChecker.checkValidity();
+                ArrayList<String[]>charVals = charChecker.getArr();
+                for (String [] val :charVals){
+                    Variable var = new Variable(val[0],val[1],val[2],scopeNum,isFinal);
+                    AddVarToVars(scopeNum,val[0],var);
+                }
+                break;
+            case INT_TYPE:
+                IntTypeChecker intTypeChecker = new IntTypeChecker(line, scopeNum, isFinal);
+                intTypeChecker.checkValidity();
+                ArrayList<String[]> values = intTypeChecker.getArr();
+                for (String[] val : values) {
+                    Variable var = new Variable(val[0], val[1], val[2], scopeNum, isFinal);
+                    AddVarToVars(scopeNum, val[0], var);
+                }
+                break;
+            case DOUBLE_TYPE:
+                DoubleTypeChecker doubleTypeChecker = new DoubleTypeChecker(line,scopeNum,isFinal);
+                doubleTypeChecker.checkValidity();
+                ArrayList<String[]>dValues = doubleTypeChecker.getArr();
+                for(String[]val:dValues){
+                    Variable var = new Variable(val[0],val[1],val[2],scopeNum,isFinal);
+                    AddVarToVars(scopeNum,val[0],var);
+                }
+                break;
+            case STRING_TYPE:
+                StringTypeChecker stringTypeChecker= new StringTypeChecker(line,scopeNum,isFinal);
+                stringTypeChecker.checkValidity();
+                ArrayList<String[] > sValues = stringTypeChecker.getArr();
+                for(String[]val:sValues){
+                    Variable var = new Variable(val[0],val[1],val[2],scopeNum,isFinal);
+                    AddVarToVars(scopeNum,val[0],var);
+                }
+                break;
+            case BOOLEAN_TYPE:
+                BooleanTypeChecker booleanChecker = new BooleanTypeChecker(line,scopeNum,isFinal);
+                booleanChecker.checkValidity();
+                ArrayList<String[]> booleanVars = booleanChecker.getArr();
+                for(String[] val:booleanVars){
+                    Variable var = new Variable(val[0],val[1],val[2],scopeNum,isFinal);
+                    AddVarToVars(scopeNum,val[0],var);
+                }
+                break;
+        }
+    }
+
+
+    /**
+     * this function checks an already existing variable's assignment
+     * @param line line to be checked
+     * @return true or false
+     * @throws InvalidTypeException
+     */
+    private boolean CheckVar(String line) throws InvalidTypeException, AlreadyDeclaredFinalException {
         // if line is a method call return true
         Pattern methodCallPattern = Pattern.compile(MATHOS_CALL_PATTERN);
         Matcher matcher = methodCallPattern.matcher(line);
         if(matcher.find()){return true;}
-        Pattern assignVar = Pattern.compile("^\\s*[a-zA-Z_\\d]+\\s*=\\s*\\w+[a-zA-Z_\\d]*\\s*;\\s*$");
+
+//        Pattern assignVar = Pattern.compile("^\\s*[a-zA-Z_\\d]+\\s*=\\s*\\w+[a-zA-Z_\\d]*\\s*;\\s*$");
+        Pattern assignVar = Pattern.compile("\\s*[a-zA-Z_\\d]+\\s*=\\s*(\"[^\"]*\"|'[^']*'|\\w+[a-zA-Z_\\d]*)\\s*;\\s*$");
+
         matcher = assignVar.matcher(line);
         boolean foundType = false;
         if (matcher.find()) {
@@ -241,6 +274,9 @@ public class Parser {
             Variable LHS = null;
             for (int i = 0; i < variables.size(); i++) {
                 if (variables.get(i).containsKey(params[0])) {
+                    if(variables.get(i).get(params[0]).isFinal()){
+                        throw new AlreadyDeclaredFinalException();
+                    }
                     LHSScope = i;
                     LHS = variables.get(i).get(params[0]);
                     break;
@@ -251,9 +287,9 @@ public class Parser {
                     if (variables.get(i).containsKey(params[1])) {//has the RHS name
                         Variable RHS = variables.get(i).get(params[1]);
                         if (!RHS.getType().equals(LHS.getType())) {//check if types are legal
-                            if (!((RHS.getType().equals("int") &&
-                                    (LHS.getType().equals("double") || LHS.getType().equals(BOOLEAN_TYPE)))
-                                    || (RHS.getType().equals("double") && LHS.getType().equals(BOOLEAN_TYPE)))) {
+                            if (!((RHS.getType().equals(INT_TYPE) &&
+                                    (LHS.getType().equals(DOUBLE_TYPE) || LHS.getType().equals(BOOLEAN_TYPE)))
+                                    || (RHS.getType().equals(DOUBLE_TYPE) && LHS.getType().equals(BOOLEAN_TYPE)))) {
                                 foundType = false;
                                 break;
                             } else {
@@ -271,21 +307,22 @@ public class Parser {
                     // check if rhs is the same type as lhs
                     Pattern p = null;
                     switch (LHS_type) {
-                        case "int":
+                        case INT_TYPE:
                             p = Pattern.compile(TypeChecker.VALID_INT_VALUE_REGEX);
                             break;
-                        case "double":
+                        case DOUBLE_TYPE:
                             p = Pattern.compile(TypeChecker.VALID_DOUBLE_VALUE_REGEX);
                             break;
-                        case "String":
+                        case STRING_TYPE:
                             p = Pattern.compile(TypeChecker.VALID_STRING_VALUE_REGEX);
                             break;
                         case BOOLEAN_TYPE:
                             p = Pattern.compile(TypeChecker.VALID_BOOLEAN_VALUE_REGEX);
                             break;
-                        case "char":
+                        case CHAR_TYPE:
                             p = Pattern.compile(TypeChecker.VALID_CHAR_VALUE_REGEX);
                             break;
+
                     }
                     if (p != null) {
                         // check if value is correct type
@@ -342,8 +379,8 @@ public class Parser {
 
                             //check if types are valid, if it isn't will throw exception
                             if (!methodType.equals(varType)) {
-                                if (!((varType.equals("int") && (methodType.equals("double") || methodType.equals(
-                                        BOOLEAN_TYPE))) || (varType.equals("double") && methodType.equals(BOOLEAN_TYPE)))) {
+                                if (!((varType.equals(INT_TYPE) && (methodType.equals(DOUBLE_TYPE) || methodType.equals(
+                                        BOOLEAN_TYPE))) || (varType.equals(DOUBLE_TYPE) && methodType.equals(BOOLEAN_TYPE)))) {
                                     throw new IllegalMethodCall();
                                 }
                             }
@@ -379,10 +416,10 @@ public class Parser {
 
 
         if (!((methodType.equals(BOOLEAN_TYPE) && (intMatcher.find() || doubleMatcher.find() || boolMatcher.find()))
-                || (methodType.equals("double") && (doubleMatcher.find() || boolMatcher.find()))
-                || (methodType.equals("int") && intMatcher.find())
-                || (methodType.equals("String") && stringMatcher.find())
-                || (methodType.equals("char") && charMatcher.find()))) {
+                || (methodType.equals(DOUBLE_TYPE) && (doubleMatcher.find() || boolMatcher.find()))
+                || (methodType.equals(INT_TYPE) && intMatcher.find())
+                || (methodType.equals(STRING_TYPE) && stringMatcher.find())
+                || (methodType.equals(CHAR_TYPE) && charMatcher.find()))) {
             goodParam = false;
         }
         return goodParam;
@@ -403,8 +440,8 @@ public class Parser {
                     HashMap<String, Variable> varsInScope = variables.get(i);
                     for (Variable var : varsInScope.values()) {
                         boolean goodType =
-                                var.getType().equals("int") ||
-                                        var.getType().equals("double") ||
+                                var.getType().equals(INT_TYPE) ||
+                                        var.getType().equals(DOUBLE_TYPE) ||
                                         var.getType().equals(BOOLEAN_TYPE);
                         if (param.equals(var.getName()) && (goodType)) {
                             foundGoodParam = true;
@@ -423,7 +460,7 @@ public class Parser {
     }
 
     private void checkMethodLine(String line) throws
-            InvalidTypeException, IllegalMethodFormatException, IllegalNestedMethod, InvalidMethodName {
+            InvalidTypeException, IllegalMethodFormatException, IllegalNestedMethod, InvalidMethodNameException {
         if (curMethod != null) {
             throw new IllegalNestedMethod();
         }
