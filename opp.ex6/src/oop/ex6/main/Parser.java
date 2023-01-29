@@ -145,6 +145,10 @@ public class Parser {
     }
 
 
+    /**
+     * getter for variables map
+     * @return variables map
+     */
     public HashMap<Integer, HashMap<String, Variable>> getVariables() {
         return variables;
     }
@@ -221,6 +225,16 @@ public class Parser {
     }
 
 
+    /**
+     * this function checks new variables in the file
+     * @param vartype type of variable
+     * @param line line in file
+     * @param scopeNum current scope number
+     * @param isFinal boolean value if is final or not
+     * @throws InvalidTypeException
+     * @throws InvalidVariableException
+     * @throws VarNameAlreadyUsed
+     */
     private void checkNewVariable(String vartype, String line, int scopeNum, boolean isFinal)
             throws InvalidTypeException, InvalidVariableException, VarNameAlreadyUsed {
         switch (vartype) {
@@ -369,17 +383,42 @@ public class Parser {
         return foundType;
     }
 
+    /**
+     * this function checks if method name is valid
+     * @param methodName method name
+     * @return true or false
+     */
+    private boolean isMethodNameValid(String methodName) {
+        return methodsList.containsKey(methodName);
+    }
 
+
+    /**
+     * checks if number of parameters in the method is valid
+     * @param givenParams the given parameters in method call
+     * @param method method
+     * @return true or false
+     */
+    private boolean isNumOfParamsValid(String[] givenParams, Method method) {
+        return givenParams.length == method.getMethodParameters().size();
+    }
+
+    /**
+     * this function checks if the method call is valid
+     * @param line current line in file
+     * @throws IllegalMethodCallException if method call is illegal
+     */
     private void CheckMethodCall(String line) throws IllegalMethodCallException {
         Pattern methodCallPattern = Pattern.compile(METHOD_CALL_PATTERN);
         Matcher matcher = methodCallPattern.matcher(line);
         if (matcher.find()) {
             String[] splitLine = line.split(SPLIT_BY_PARENTHESES);
-            if (methodsList.containsKey(splitLine[0])) { //check if method name is valid
-                Method method = methodsList.get(splitLine[0]);
+            String methodName = splitLine[0];
+            if (isMethodNameValid(methodName)) { //check if method name is valid
+                Method method = methodsList.get(methodName);
                 String[] givenParams = splitLine[1].split(SPLIT_BY_COMMA);
                 HashMap<String, Variable> methodParameters = method.getMethodParameters();
-                if (givenParams.length != methodParameters.size()) { //check num of params given is valid
+                if (!isNumOfParamsValid(givenParams,method)) { //check num of params given is valid
                     throw new IllegalMethodCallException();
                 }
                 int curGivenParamIdx = 0;
@@ -426,6 +465,12 @@ public class Parser {
 
     }
 
+    /**
+     * this function checks the parameters based on their type
+     * @param methodType method type
+     * @param givenParams the given parameters
+     * @return true or false
+     */
     private boolean ParamTypeChecker(String methodType, String givenParams) {
         boolean goodParam = true;
         Matcher intMatcher = intPattern.matcher(givenParams);
@@ -445,6 +490,12 @@ public class Parser {
         return goodParam;
     }
 
+    /**
+     * this function checks if/while blocks
+     * @param line current line in file
+     * @throws InvalidIfWhileBlockException if while is invalid
+     * @throws InvalidTypeException wrong type
+     */
     private void checkIfWhile(String line) throws InvalidIfWhileBlockException, InvalidTypeException {
         Pattern ifWhilePattern = Pattern.compile(VALID_OUTLINE_REGEX_IF_WHILE);
         Matcher matcher = ifWhilePattern.matcher(line);
@@ -455,30 +506,47 @@ public class Parser {
             checker.checkValidity();
             ArrayList<String> params = checker.getParamNames();
             for (String param : params) {
-                boolean foundGoodParam = false;
-                for (int i = 0; i < scopeNum; i++) {
-                    HashMap<String, Variable> varsInScope = variables.get(i);
-                    for (Variable var : varsInScope.values()) {
-                        boolean goodType =
-                                var.getType().equals(INT_TYPE) ||
-                                        var.getType().equals(DOUBLE_TYPE) ||
-                                        var.getType().equals(BOOLEAN_TYPE);
-                        if (param.equals(var.getName()) && (goodType)) {
-                            foundGoodParam = true;
-                            break;
-                        }
-
-                    }
-                }
-                if (!foundGoodParam) {
-                    throw new InvalidTypeException();
-                }
+                checkIfWhileParameter(param);
             }
         } else {
             throw new InvalidIfWhileBlockException();
         }
     }
 
+    /**
+     * this function checks if / while block's parameters
+     * @param param parameter to check
+     * @throws InvalidTypeException invalid type
+     */
+    private void checkIfWhileParameter(String param) throws InvalidTypeException {
+        boolean foundGoodParam = false;
+        for (int i = 0; i < scopeNum; i++) {
+            HashMap<String, Variable> varsInScope = variables.get(i);
+            for (Variable var : varsInScope.values()) {
+                boolean goodType =
+                        var.getType().equals(INT_TYPE) ||
+                                var.getType().equals(DOUBLE_TYPE) ||
+                                var.getType().equals(BOOLEAN_TYPE);
+                if (param.equals(var.getName()) && (goodType)) {
+                    foundGoodParam = true;
+                    break;
+                }
+
+            }
+        }
+        if (!foundGoodParam) {
+            throw new InvalidTypeException();
+        }
+    }
+
+    /**
+     * this function checks a method line in file
+     * @param line current line in file
+     * @throws InvalidTypeException
+     * @throws IllegalMethodFormatException
+     * @throws IllegalNestedMethodException
+     * @throws InvalidMethodNameException
+     */
     private void checkMethodLine(String line) throws
             InvalidTypeException, IllegalMethodFormatException, IllegalNestedMethodException, InvalidMethodNameException {
         if (curMethod != null) {
