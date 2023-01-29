@@ -1,2 +1,72 @@
-shira_p
 raizel.g
+shira_p
+
+===================================
+=      Main Files description     =
+===================================
+Sjavac.java - the main file. It gets the file to be compiled and returns if it's syntax is correct. It also
+catches all exceptions.
+parser.java - this file reads every line and called the methods that need to be used to check if line is
+valid, considering the whole file.
+TypeChecker.java - this is an abstract class which each type implements, like int and if block. They check
+correctness of type - in the line, not the scope of the whole file.
+
+
+======================================
+=         6.1 Error Handling         =
+======================================
+We decided to make a main method exception which extends Exception, and all the more specific exceptions that
+are types of method exceptions extend MethodException. We did this cause there are many different types of
+exceptions that can be thrown by a method and we wanted the exception to be specific. It extends
+MethodException because they are types of method exceptions.
+The other exceptions extend Exception directly.
+
+==============================================
+=         6.2 Object Oriented Design         =
+==============================================
+As we explained already, TypeChecker.java is an abstract class and we implemented each checker individually,
+this is Style design. We keep encapsulation and polymorphism - each checker checks its type and it is easy to
+ change the code or to add other type checkers.  In addition we keep the Open Close principle by making a
+ factory that is the "decision maker", and only there we choose which type to check. This happens at runtime.
+
+
+ ==============================================
+ =           6.3 Regular Expressions          =
+ ==============================================
+  DOUBLE_REGEX = "^[+\\-]?\\s*\\d*\\.\\d+\\s*$|^[+\\-]?\\s*\\d+\\.\\d*\\s*$";
+  this regex describes a double number:
+  ^...$ -  is that the expression is the whole text and not only part of a text
+  (we dont want to accept a1.2# as a double)
+  [+\\-]? - can have a plus or minus sign before the number. The ? means ones or zero times.
+  \\s* - this allows white space.
+  \\d*\\.\\d+ - has to have at least one digit after comma (allows .5)
+  \\d+\\.\\d* - has to have at least one digit before comma (allows 5.)
+  | - makes sure the number is one of the above (and not .)
+
+"^\\s*(if|while|void|char|String|boolean|double|return|final|int|})\\s*";
+checks if the beginning of line (^) is of a type or an end of a function line (}).
+we also allow whitespace before and after the word by using \\s*
+
+=====================================
+=        s-Java test-files          =
+=====================================
+1. Initialize two vars in one line.
+2. Check double with - sign.
+3. check double with numbers on both sides of comma.
+4. check bad string.
+5. check good string.
+6.check method with no return
+7. check char
+8. return outside of function
+9. check final
+10. try to change final
+11. method has return but doesn't end with it.
+12. check bad call of method with condition ends with ||
+13. check good method
+14. check bad boolean, assign "true" to bool.
+15. try assigning sum of int to int
+16. assign int to bool
+17. check string
+18. check comment line
+19.check return is not last line of method
+20. check nested class

@@ -17,14 +17,20 @@ public class TypeCheckerFactory {
     public static final String CHAR_TYPE = "char";
     public static final String VOID_TYPE = "void";
     public static final String FINAL_TYPE = "final";
-//    private final HashMap<Integer, HashMap<String, Variable>> variables;
 
-//    public TypeCheckerFactory( HashMap<Integer, HashMap<String, Variable>> variables){
-//        this.variables = variables;
-//    }
-
-
-    public TypeChecker getType(String variableType, String line, int scopeLevel, String name,
+    /**
+     * the factory that builds the type checker needed
+     * @param variableType type of checks we want
+     * @param line the line to check the var on
+     * @param scopeLevel the scope of this line
+     * @param name name of the variable
+     * @param isFinal if var is final
+     * @return the wanted type checker
+     * @throws InvalidTypeException the type given in line isn't valid for this typy
+     * @throws InvalidVariableException the variable assigned is invalid
+     * @throws VarNameAlreadyUsed the name of the var was already used in this scope
+     */
+    public static TypeChecker getType(String variableType, String line, int scopeLevel, String name,
                                boolean isFinal )
             throws InvalidTypeException, InvalidVariableException, VarNameAlreadyUsed {
          switch (variableType) {
@@ -54,7 +60,17 @@ public class TypeCheckerFactory {
 
     }
 
-    private TypeChecker checkNextWord(String line ,int scopeLevel) throws InvalidTypeException
+    /**
+     * is for final type , after knowing the line is of type final we need to check if the rest of the
+     * line can be transformed to a checker
+     * @param line same as above
+     * @param scopeLevel same as above
+     * @return the type checker
+     * @throws InvalidTypeException same as above
+     * @throws InvalidVariableException same as above
+     * @throws VarNameAlreadyUsed same as above
+     */
+    private static TypeChecker checkNextWord(String line ,int scopeLevel) throws InvalidTypeException
             , InvalidVariableException, VarNameAlreadyUsed {
         Pattern pattern = Pattern.compile("final\\s+(\\w+)");
         Matcher match = pattern.matcher(line);

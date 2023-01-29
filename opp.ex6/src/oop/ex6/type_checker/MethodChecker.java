@@ -4,12 +4,15 @@ import oop.ex6.main.Method;
 import oop.ex6.main.Variable;
 import com.sun.jdi.InvalidTypeException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
-public class MethodChecker implements TypeChecker {
+/**
+ *Checks if a given line is a legal method call
+ */
+public class MethodChecker extends TypeChecker {
     public static final String REGEX_VALID_TYPE = "^(int|double|String|boolean|char)$";
     private final String params;
     private final int scopeLevel;
@@ -17,7 +20,6 @@ public class MethodChecker implements TypeChecker {
     private Method method;
     private static final String METHOD_NAME_REGEX = "^[a-zA-Z][\\w]*";
     private boolean throwException;
-    private TypeCheckerFactory factory ;
 
     /**
      * constructor
@@ -29,13 +31,15 @@ public class MethodChecker implements TypeChecker {
         this.params = line;
         this.methodName = name;
         this.scopeLevel = scopeLevel;
-        this.factory = new TypeCheckerFactory();
 
     }
-
+    /**
+     * checks validity of the word
+     * @throws InvalidTypeException the type if invalid
+     */
     @Override
     public void checkValidity() throws InvalidTypeException, InvalidMethodNameException {
-        HashMap<String, Variable> varMap = new HashMap<>();
+        ArrayList<Variable> varMap = new ArrayList<>();
         checkMethodName();
         //check if method name is valid . if valid - continue, if not-return
         if(throwException){
@@ -57,11 +61,12 @@ public class MethodChecker implements TypeChecker {
                         throwException = false;
                         break;
                     }
+                    ArrayList<String> varNames = getVarNames(varMap);
 
-                    if (!varMap.containsKey(varName)) {
+                    if (!varNames.contains(varName)) {
 
                         Variable variable = new Variable(varName, varType, scopeLevel, false);
-                        varMap.put(varName, variable);
+                        varMap.add(variable);
                         throwException = false;
                     }
 
@@ -76,6 +81,14 @@ public class MethodChecker implements TypeChecker {
         }
 
         this.method = new Method(methodName, varMap);
+    }
+
+    private ArrayList<String> getVarNames(ArrayList<Variable> variables){
+        ArrayList<String> arr = new ArrayList<>();
+        for(Variable variable : variables){
+            arr.add(variable.getName());
+        }
+        return arr;
     }
 
     /**

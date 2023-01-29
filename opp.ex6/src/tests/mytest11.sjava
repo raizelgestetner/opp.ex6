@@ -1,3 +1,6 @@
- int b = a;
+void foo(int a ){
 
-final int a = 4;
+return;
+a=1;
+
+}

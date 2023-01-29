@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class DoubleTypeChecker implements TypeChecker {
+public class DoubleTypeChecker extends TypeChecker {
     private static final String VALID_VALUE_REGEX = "-?\\d+(\\.\\d+)?";
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
     private static final String DOUBLE_TYPE = "double";
@@ -37,9 +37,9 @@ public class DoubleTypeChecker implements TypeChecker {
 
     }
 
-    public HashMap<String, String> getVarsToFindLater() {
-        return varsToFindLater;
-    }
+//    public HashMap<String, String> getVarsToFindLater() {
+//        return varsToFindLater;
+//    }
 
     /**
      * checks that the name and value of parameter if valid
@@ -64,16 +64,18 @@ public class DoubleTypeChecker implements TypeChecker {
         }
     }
 
+    /**
+     * checks that the value given to the var is valid
+     * @param value given to the var
+     * @throws InvalidTypeException thrown if the value given is invalid for double type
+     */
     private void checkValue(String value) throws InvalidTypeException {
         if (value != null) {
             Matcher matcher = valuePattern.matcher(value);
             if (!matcher.matches()) {
                 //check if already declared in earlier scope
                 boolean inPrevScope = checkScope(scopeLevel, value);
-//
-//                if (!inPrevScope && scopeLevel == 0) {
-//                    varsToFindLater.put(value, DOUBLE_TYPE);
-//                }
+
                 if(!inPrevScope){
                     throw new InvalidTypeException();
                 }
@@ -81,10 +83,14 @@ public class DoubleTypeChecker implements TypeChecker {
         }
     }
 
-    public boolean isFinal() {
-        return isFinal;
-    }
+//    public boolean isFinal() {
+//        return isFinal;
+//    }
 
+    /**
+     * getter of arr of values
+     * @return the array
+     */
     public ArrayList<String[]> getArr() {
         return arr;
     }

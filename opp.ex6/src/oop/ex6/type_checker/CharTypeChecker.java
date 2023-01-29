@@ -7,8 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-public class CharTypeChecker implements TypeChecker {
+/**
+ *Checks if a given word is of type char
+ */
+public class CharTypeChecker extends TypeChecker {
     public static final String CHAR_TYPE = "char";
     private final HashMap<String, String> varsToCheck;
     private static final String VALID_VALUE_REGEX = "^\\s*'.'\\s*$";
@@ -16,22 +18,34 @@ public class CharTypeChecker implements TypeChecker {
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
     private final ArrayList<String[]> arr;
     private final HashMap<String, String> varsToFindLater;
-    private boolean isFinal;
+//    private boolean isFinal;
     private final int scopeLevel;
 
+    /**
+     * constructor
+     * @param line holds the vars to check
+     * @param scopeLevel the scope that the line came from
+     * @param isFinal true if the given word to check is final
+     * @throws InvalidVariableException the var format is invalid
+     * @throws VarNameAlreadyUsed the var name exist in this scope
+     */
     public CharTypeChecker(String line,int scopeLevel,boolean isFinal) throws InvalidVariableException, VarNameAlreadyUsed {
         varsToCheck =splitLine(line,scopeLevel);
         this.scopeLevel = scopeLevel;
-        this.isFinal=isFinal;
-        this.arr=new ArrayList<String[]>();
+//        this.isFinal=isFinal;
+        this.arr=new ArrayList<>();
         this.varsToFindLater = new HashMap<>();
 
     }
 
-    public HashMap<String, String> getVarsToFindLater() {
-        return varsToFindLater;
-    }
+//    public HashMap<String, String> getVarsToFindLater() {
+//        return varsToFindLater;
+//    }
 
+    /**
+     * checks validity of the word
+     * @throws InvalidTypeException the type if invalid
+     */
     @Override
     public void checkValidity() throws InvalidTypeException {
         for (Map.Entry<String, String> entry : varsToCheck.entrySet()) {
@@ -48,6 +62,12 @@ public class CharTypeChecker implements TypeChecker {
         }
 
     }
+
+    /**
+     * checks that the value given to the var is valid
+     * @param value given to the var
+     * @throws InvalidTypeException thrown if the value given is invalid for char type
+     */
     private void checkValue(String value) throws InvalidTypeException {
         if (value != null) {
             Matcher matcher = valuePattern.matcher(value);
@@ -59,9 +79,6 @@ public class CharTypeChecker implements TypeChecker {
                 //check if already declared in earlier scope
                 boolean inPrevScope = checkScope(scopeLevel, value);
 
-//                if (!inPrevScope && scopeLevel == 0) {
-//                    varsToFindLater.put(value, CHAR_TYPE);
-//                }
                 if(!inPrevScope){
                     throw new InvalidTypeException();
                 }
@@ -69,11 +86,15 @@ public class CharTypeChecker implements TypeChecker {
         }
     }
 
+    /**
+     * getter of arr of values
+     * @return the array
+     */
     public ArrayList<String[]> getArr() {
         return arr;
     }
 
-    public boolean isFinal() {
-        return isFinal;
-    }
+//    public boolean isFinal() {
+//        return isFinal;
+//    }
 }

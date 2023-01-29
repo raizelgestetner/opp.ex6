@@ -10,12 +10,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-public class IntTypeChecker implements TypeChecker {
+/**
+*Checks if a given word is of type char
+*/
+public class IntTypeChecker extends TypeChecker {
 
     private static final String VALID_VALUE_REGEX = "^\\s*[-]?(\\d+)*\\s*\\;?$";
-
-    private static final String SEPARATE_LINE_REGEX = "^(.*?[^\\s])\\s*=\\s*(.*)$";
 
     private static final Pattern valuePattern = Pattern.compile(VALID_VALUE_REGEX);
     public static final String INT_TYPE = "int";
@@ -23,8 +23,7 @@ public class IntTypeChecker implements TypeChecker {
     private final boolean isFinal;
 
     private HashMap<String, String> varsToCheck;
-    private Pattern pattern;
-    private Matcher matcher;
+
     private ArrayList<String[]> arr;
     private HashMap<String, String> varsToFindLater;
 
@@ -50,7 +49,7 @@ public class IntTypeChecker implements TypeChecker {
     @Override
     public void checkValidity() throws InvalidTypeException, VarNameAlreadyUsed {
 
-        HashMap<String, Variable> scopeLevelVarMap = Parser.variables.get(scopeLevel);
+//        HashMap<String, Variable> scopeLevelVarMap = Parser.variables.get(scopeLevel);
 
         // iterate over hashmap
         for (Map.Entry<String, String> entry : varsToCheck.entrySet()) {
@@ -69,14 +68,14 @@ public class IntTypeChecker implements TypeChecker {
 
     }
 
-    public boolean isFinal() {
-        return isFinal;
-    }
+//    public boolean isFinal() {
+//        return isFinal;
+//    }
 
-    public IntTypeChecker() {
-        scopeLevel = 0;
-        isFinal = false;
-    }
+//    public IntTypeChecker() {
+//        scopeLevel = 0;
+//        isFinal = false;
+//    }
 
     private void checkValue(String value) throws InvalidTypeException {
         if (value != null) {

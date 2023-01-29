@@ -5,9 +5,7 @@ import oop.ex6.type_checker.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,12 +13,16 @@ import java.util.regex.Pattern;
  * this class reads and parses the file
  */
 public class Parser {
+    public static final String VALID_INT_VALUE_REGEX = "^\\s*[-+]?(\\d+)*\\s*$";
+    public static final String VALID_DOUBLE_VALUE_REGEX = "-?\\\\d+(\\\\.\\\\d+)?";
+    public static final String VALID_CHAR_VALUE_REGEX = "^\\s*'.'\\s*$";
+    public static final String VALID_BOOLEAN_VALUE_REGEX = "(true|false|-?\\d+(\\.\\d+)?)";
+    public static final String VALID_STRING_VALUE_REGEX = "\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\"";
 
     private static final String METHOD_SUFFIX = "\\s*\\([^\\)]*\\)\\s*(\\{|;)$";
     private static final String REGEX_OPEN_PARENTHESIS = "\\(";
     private static final String VALID_LINE_PREFIX = "^\\s*(if|while|void|char|String|boolean|double|return" +
-            "|final" +
-            "|int|})\\s*";
+            "|final|int|})\\s*";
     private static final String METHOD_CALL_PATTERN = "^\\s*[a-zA-z\\d]+\\s*\\(.*\\);\\s*$";
     private static final String SPLIT_BY_PARENTHESES = "\\s*\\(\\s*|\\s*\\)\\s*";
     private static final String SPLIT_BY_COMMA = "\\s*,\\s*";
@@ -29,6 +31,8 @@ public class Parser {
     private static final String BOOL_REGEX = "^\\s*true\\s*$|^\\s*false\\s*$";
     private static final String STRING_REGEX = "^\\s*[a-zA-Z_\\d]*\\s*$";
     private static final String CHAR_REGEX = "^\\s*'.'\\s*$";
+
+
     private static final String BOOLEAN_TYPE = "boolean";
     private static final String STRING_TYPE = "String";
     private static final String DOUBLE_TYPE = "double";
@@ -38,6 +42,10 @@ public class Parser {
     private static final String FINAL_TYPE = "final";
     public static final String ASSIGN_VAR_REGEX =
             "\\s*[a-zA-Z_\\d]+\\s*=\\s*(\"[^\"]*\"|'[^']*'|\\w+[a-zA-Z_\\d]*)\\s*;\\s*$";
+    public static final String END_OF_METHOD_SIGN = "}";
+    public static final String VOID_FIRST_WORD = "void";
+    public static final String IF_FIRST_WORD = "if";
+    public static final String WHILE_FIRST_WORD = "while";
 
     private final Pattern intPattern = Pattern.compile(INT_REGEX);
     private final Pattern doublePattern = Pattern.compile(DOUBLE_REGEX);
@@ -46,6 +54,7 @@ public class Parser {
 
     private final Pattern charPattern = Pattern.compile(CHAR_REGEX);
     private final BufferedReader reader;
+    private ArrayList< Variable> curMethodParams;
     private HashMap<String, Method> methodsList;
     public static HashMap<Integer, HashMap<String, Variable>> variables;
 
@@ -59,14 +68,12 @@ public class Parser {
     private static final String TYPE_PREFIX = "^\b(int|double|boolean|char|String|void|final|if|return)\b";
     private static final String METHOD_PREFIX = "void";
     private Method curMethod; //is null if not in method and otherwise holds the current method of the scope
-    private Matcher matcher;
-
     private ArrayList<String> methodsToFind;
 
     private HashMap<String, String> globalVarsToFind;
 
     private static final String SPLIT_LINE_METHOD =
-            "^\\w+\\s+\\w+\\s*\\(([\\w\\s]+\\s+\\w+(,\\s*[\\w\\s]+\\s+\\w+)*)?\\)\\s*\\{\\s*$";
+           "^\\w+\\s+\\w+\\s*\\(([\\w\\s]+\\s+\\w+\\s*(,\\s*[\\w\\s]+\\s+\\w+\\s*)*)?\\)\\s*\\{\\s*$";
 
 
     /**
@@ -79,32 +86,16 @@ public class Parser {
         this.globalVarsToFind = new HashMap<>();
         variables = new HashMap<>();
         methodsList = new HashMap<>();
-        curMethod = null;
+        this.curMethodParams = new ArrayList<>();
+
     }
 
 
     /**
-     * this function reads the file
-     *
-     * @throws IOException
-     * @throws EndOfLineException
-     * @throws StartOfLineException
-     * @throws IllegalMethodFormatException
-     * @throws InvalidTypeException
-     * @throws InvalidIfWhileBlockException
-     * @throws MethodHasNoReturnException
-     * @throws IllegalNestedMethodException
-     * @throws IllegalMethodCallException
-     * @throws VarNameAlreadyUsed
-     * @throws InvalidMethodNameException
-     * @throws InvalidVariableException
-     * @throws UndeclaredMethodException
-     * @throws AlreadyDeclaredFinalException
-     * @throws IllegalNumOfScopesException
-     * @throws GlobalVariableException
+     * this function reads the file and throws exceptions if file has incorrect syntax
      */
     public void readFile() throws IOException, EndOfLineException, StartOfLineException,
-            IllegalMethodFormatException, InvalidTypeException, InvalidIfWhileBlockException, MethodHasNoReturnException, IllegalNestedMethodException, IllegalMethodCallException, VarNameAlreadyUsed, InvalidMethodNameException, InvalidVariableException, UndeclaredMethodException, AlreadyDeclaredFinalException, IllegalNumOfScopesException, GlobalVariableException {
+            IllegalMethodFormatException, InvalidTypeException, InvalidIfWhileBlockException, MethodHasNoReturnException, IllegalNestedMethodException, IllegalMethodCallException, VarNameAlreadyUsed, InvalidMethodNameException, InvalidVariableException, UndeclaredMethodException, AlreadyDeclaredFinalException, IllegalNumOfScopesException, GlobalVariableException, InvalidReturnException {
         String line = reader.readLine();
         line = trimLine(line);
         while (line != null) {
@@ -145,8 +136,7 @@ public class Parser {
             // check that content of line is valid
             checkLine(line);
 
-            line = reader.readLine(); // todo: this ignors empty lines and then when return is not the last
-            // todo: line before the end of method but an empty line
+            line = reader.readLine();
             line = trimLine(line);
         }
 
@@ -187,27 +177,32 @@ public class Parser {
     private void checkLine(String line) throws IllegalMethodFormatException, InvalidTypeException,
             InvalidIfWhileBlockException, MethodHasNoReturnException, IllegalNestedMethodException,
             IllegalMethodCallException, VarNameAlreadyUsed, InvalidMethodNameException,
-            InvalidVariableException, AlreadyDeclaredFinalException {
+            InvalidVariableException, AlreadyDeclaredFinalException, InvalidReturnException {
         Pattern pattern = Pattern.compile(VALID_LINE_PREFIX);
         Matcher matcher = pattern.matcher(line);
         if (matcher.find()) {
 
             String first_word = matcher.group(1);
+            if(!first_word.equals(END_OF_METHOD_SIGN) && curMethod!=null){
+                curMethod.hasNoReturn();
+            }
             switch (first_word) {
-                case "}":
-                    if (curMethod != null && !(curMethod.GetHasReturn()) &&
-                            scopeNum == curMethod.getMethodScope()) {
+                case END_OF_METHOD_SIGN:
+                    if (curMethod != null && !(curMethod.GetHasReturn())) {
                         throw new MethodHasNoReturnException();
                     }
                     variables.remove(scopeNum);
+                    curMethodParams.clear();
                     scopeNum--;
                     break;
-                case "void":
+                case VOID_FIRST_WORD:
                     checkMethodLine(line);
+
                     break;
-                case "if":
-                case "while":
+                case IF_FIRST_WORD:
+                case WHILE_FIRST_WORD:
                     checkIfWhile(line);
+
                     break;
 
                 case CHAR_TYPE:
@@ -222,18 +217,18 @@ public class Parser {
                     String[] splitLine = line.split(" ");
                     String type = splitLine[1];
                     line = line.replaceFirst("final ", "");
-
                     checkNewVariable(type, line, scopeNum, true);
                     break;
                 case RETURN_TYPE:
                     if (scopeNum == 0) {
                         throw new InvalidReturnException();
                     } else {
+
                         ReturnChecker returnChecker = new ReturnChecker(line);
                         returnChecker.checkValidity();
                         //If it doesn't throw exception means the cur method has a return value
                         curMethod.hasReturn();
-                        curMethod = null;
+//                        curMethod = null;
                     }
                     break;
                 default:
@@ -241,7 +236,7 @@ public class Parser {
             }
 
         } else {
-
+            curMethod.hasNoReturn();
             CheckMethodCall(line);
             if (!CheckVar(line)) {
                 throw new InvalidTypeException();
@@ -338,75 +333,83 @@ public class Parser {
             String[] params = line.split("\\s*=\\s*");
             int LHSScope = -1;
 
-            Variable LHS = null;
-            for (int i = 0; i < variables.size(); i++) {
-                if (variables.get(i).containsKey(params[0])) {
-                    if (variables.get(i).get(params[0]).isFinal()) {
-                        throw new AlreadyDeclaredFinalException();
-                    }
-                    if (variables.get(i).get(params[0]).getValue() == null) {
-                        throw new InvalidTypeException();
-                    }
-                    LHSScope = i;
-                    LHS = variables.get(i).get(params[0]);
-                    break;
-                }
+            String[] s = new String[]{params[0]};
+            ParamsFromMethodCall(s, curMethodParams);
+            if(s[0] == null){
+                foundType = true;
             }
-            if (LHSScope != -1) {
-                for (int i = 0; i <= LHSScope; i++) {//check all scopes smaller or equal to lhs scope
-                    if (variables.get(i).containsKey(params[1])) {//has the RHS name
-                        Variable RHS = variables.get(i).get(params[1]);
-                        if (!RHS.getType().equals(LHS.getType())) {//check if types are legal
-                            if (!((RHS.getType().equals(INT_TYPE) &&
-                                    (LHS.getType().equals(DOUBLE_TYPE) ||
-                                            LHS.getType().equals(BOOLEAN_TYPE)))
-                                    || (RHS.getType().equals(DOUBLE_TYPE) &&
-                                    LHS.getType().equals(BOOLEAN_TYPE)))) {
-                                foundType = false;
-                                break;
+
+            else {
+                Variable LHS = null;
+
+                for (int i = 0; i < variables.size(); i++) {
+                    if (variables.get(i).containsKey(params[0])) {
+                        if (variables.get(i).get(params[0]).isFinal()) {
+                            throw new AlreadyDeclaredFinalException();
+                        }
+                        if (variables.get(i).get(params[0]).getValue() == null) {
+                            throw new InvalidTypeException();
+                        }
+                        LHSScope = i;
+                        LHS = variables.get(i).get(params[0]);
+                        break;
+                    }
+                }
+                if (LHSScope != -1) {
+                    for (int i = 0; i <= LHSScope; i++) {//check all scopes smaller or equal to lhs scope
+                        if (variables.get(i).containsKey(params[1])) {//has the RHS name
+                            Variable RHS = variables.get(i).get(params[1]);
+                            if (!RHS.getType().equals(LHS.getType())) {//check if types are legal
+                                if (!((RHS.getType().equals(INT_TYPE) &&
+                                        (LHS.getType().equals(DOUBLE_TYPE) ||
+                                                LHS.getType().equals(BOOLEAN_TYPE)))
+                                        || (RHS.getType().equals(DOUBLE_TYPE) &&
+                                        LHS.getType().equals(BOOLEAN_TYPE)))) {
+                                    foundType = false;
+                                    break;
+                                } else {
+                                    foundType = true;
+                                    break;
+                                }
                             } else {
                                 foundType = true;
                                 break;
                             }
-                        } else {
-                            foundType = true;
-                            break;
+                        }
+
+                        String LHS_type = LHS.getType();
+                        // check if rhs is the same type as lhs
+                        Pattern p = null;
+                        switch (LHS_type) {
+                            case INT_TYPE:
+                                p = Pattern.compile(VALID_INT_VALUE_REGEX);
+                                break;
+                            case DOUBLE_TYPE:
+                                p = Pattern.compile(VALID_DOUBLE_VALUE_REGEX);
+                                break;
+                            case STRING_TYPE:
+                                p = Pattern.compile(VALID_STRING_VALUE_REGEX);
+                                break;
+                            case BOOLEAN_TYPE:
+                                p = Pattern.compile(VALID_BOOLEAN_VALUE_REGEX);
+                                break;
+                            case CHAR_TYPE:
+                                p = Pattern.compile(VALID_CHAR_VALUE_REGEX);
+                                break;
+
+                        }
+                        if (p != null) {
+                            // check if value is correct type
+                            matcher = p.matcher(params[1]);
+                            if (matcher.matches()) {
+                                foundType = true;
+                                break;
+                            }
                         }
                     }
 
-                    String LHS_type = LHS.getType();
-                    // check if rhs is the same type as lhs
-                    Pattern p = null;
-                    switch (LHS_type) {
-                        case INT_TYPE:
-                            p = Pattern.compile(TypeChecker.VALID_INT_VALUE_REGEX);
-                            break;
-                        case DOUBLE_TYPE:
-                            p = Pattern.compile(TypeChecker.VALID_DOUBLE_VALUE_REGEX);
-                            break;
-                        case STRING_TYPE:
-                            p = Pattern.compile(TypeChecker.VALID_STRING_VALUE_REGEX);
-                            break;
-                        case BOOLEAN_TYPE:
-                            p = Pattern.compile(TypeChecker.VALID_BOOLEAN_VALUE_REGEX);
-                            break;
-                        case CHAR_TYPE:
-                            p = Pattern.compile(TypeChecker.VALID_CHAR_VALUE_REGEX);
-                            break;
-
-                    }
-                    if (p != null) {
-                        // check if value is correct type
-                        matcher = p.matcher(params[1]);
-                        if (matcher.matches()) {
-                            foundType = true;
-                            break;
-                        }
-                    }
                 }
-
             }
-
         }
         return foundType;
     }
@@ -435,7 +438,6 @@ public class Parser {
 
     /**
      * this function checks if the method call is valid
-     *
      * @param line current line in file
      * @throws IllegalMethodCallException if method call is illegal
      */
@@ -448,44 +450,79 @@ public class Parser {
             if (isMethodNameValid(methodName)) { //check if method name is valid
                 Method method = methodsList.get(methodName);
                 String[] givenParams = splitLine[1].split(SPLIT_BY_COMMA);
-                HashMap<String, Variable> methodParameters = method.getMethodParameters();
+                ArrayList< Variable> methodParameters = method.getMethodParameters();
                 if (!isNumOfParamsValid(givenParams, method)) { //check num of params given is valid
                     throw new IllegalMethodCallException();
                 }
-                int curGivenParamIdx = 0;
-                int curScopeIdx = 0;
-                for (Variable methodVar : methodParameters.values()) {
-                    String methodType = methodVar.getType();
-                    boolean nameExists = false;
-                    while (curScopeIdx < variables.size() && !nameExists) {
-                        if (!variables.get(curScopeIdx).containsKey(givenParams[curGivenParamIdx])) { //the
-                            // cur scope doesn't contain the varName
-                            curScopeIdx++;//check next scope
-                        } else { //found variable with same name
-                            Variable foundVar =
-                                    variables.get(curScopeIdx).get(givenParams[curGivenParamIdx]);
-                            String varType = foundVar.getType();
 
-                            //check if types are valid, if it isn't will throw exception
-                            if (!isTypesValid(methodType, varType)) {
-                                throw new IllegalMethodCallException();
-                            }
-                            nameExists = true;
-                        }
-                    }//we checked all scopes for this var
-                    if (!nameExists) {
-                        nameExists = ParamTypeChecker(methodType, givenParams[curGivenParamIdx]);
-                        if (!nameExists) {
-                            throw new IllegalMethodCallException();
-                        }
-                    }
+                if(curMethodParams != null) {
+                    ParamsFromMethodCall(givenParams, methodParameters);
                 }
+                    checkNameIsInOuterScope(givenParams, methodParameters);
 
             } else {
                 methodsToFind.add(methodName);
             }
         }
 
+    }
+
+    private void ParamsFromMethodCall(String[] givenParams, ArrayList<Variable> methodParameters) {
+        for (int i = 0; i < givenParams.length; i++) {
+            ArrayList<String> curMethodNames = getVarNames(curMethodParams);
+            if (curMethodNames.contains(givenParams[i])) {
+                int j = curMethodNames.indexOf(givenParams[i]);
+                if (methodParameters.get(i).getType().equals(curMethodParams.get(j).getType())) {
+                    givenParams[i] = null;
+                }
+
+            }
+        }
+    }
+
+    private static String[] makeArrFromArrList(ArrayList<String> sendParamsToCheckOuterScope) {
+        String[] send = new String[sendParamsToCheckOuterScope.size()];
+        int idx = 0 ;
+        for (String s : sendParamsToCheckOuterScope){
+            send[idx] = s;
+            idx++;
+        }
+        return send;
+    }
+
+    private void checkNameIsInOuterScope(String[] givenParams, ArrayList< Variable> methodParameters) throws IllegalMethodCallException {
+        int curGivenParamIdx = 0;
+        int curScopeIdx = scopeNum;
+        for (Variable methodVar : methodParameters) {
+            if(givenParams[curGivenParamIdx] == null){
+                curGivenParamIdx++;
+                continue;
+            }
+            String methodType = methodVar.getType();
+            boolean nameExists = false;
+            while (curScopeIdx >= 0 && !nameExists) {
+                if (!variables.containsKey(curScopeIdx) || !variables.get(curScopeIdx).containsKey(givenParams[curGivenParamIdx])) { //the
+                    // cur scope doesn't contain the varName
+                    curScopeIdx--;//check next scope
+                } else { //found variable with same name
+                    Variable foundVar =
+                            variables.get(curScopeIdx).get(givenParams[curGivenParamIdx]);
+                    String varType = foundVar.getType();
+
+                    //check if types are valid, if it isn't will throw exception
+                    if (!isTypesValid(methodType, varType)) {
+                        throw new IllegalMethodCallException();
+                    }
+                    nameExists = true;
+                }
+            }//we checked all scopes for this var
+            if (!nameExists) {
+                nameExists = ParamTypeChecker(methodType, givenParams[curGivenParamIdx]);
+                if (!nameExists) {
+                    throw new IllegalMethodCallException();
+                }
+            }
+        }
     }
 
     /**
@@ -611,11 +648,13 @@ public class Parser {
                     methodChecker.checkValidity();
                     throwException = methodChecker.getThrowException();
                     methodsList.put(method_name, methodChecker.getMethod());
+                    curMethod = methodChecker.getMethod();
+                    this.curMethodParams = new ArrayList<>();
+                    curMethodParams.addAll(methodChecker.getMethod().getMethodParams());
 
-                    // check if method is in list of undeclared methods and remove from list
-                    if (methodsToFind.contains(method_name)) {
-                        methodsToFind.remove(method_name);
-                    }
+                    // if method is in list of undeclared methods remove it
+                    methodsToFind.remove(method_name);
+
 
                     curMethod = methodChecker.getMethod();
                     scopeNum++;
@@ -692,14 +731,25 @@ public class Parser {
      */
     private void checkMethodVariables(int scopeNum, String name, Variable var) throws VarNameAlreadyUsed {
         Method method = methodsList.get(curMethod.getMethodName());
-        HashMap<String, Variable> mVars = method.getMethodParameters();
-        if (mVars.containsKey(name)) {
-            if (!Objects.equals(mVars.get(name).getType(), var.getType())) {
+        ArrayList<Variable> mVars = method.getMethodParameters();
+
+        ArrayList<String> varNames = getVarNames(mVars);
+        if (varNames.contains(name)) {
+            int idx =varNames.indexOf(name);
+            if (!var.getType().equals(mVars.get(idx).getType())) {
                 throw new VarNameAlreadyUsed();
             }
         } else {
-            mVars.put(name, var);
+            mVars.add( var);
         }
+    }
+
+    private ArrayList<String> getVarNames(ArrayList<Variable> variables){
+        ArrayList<String> arr = new ArrayList<>();
+        for(Variable variable : variables){
+            arr.add(variable.getName());
+        }
+        return arr;
     }
 
 }

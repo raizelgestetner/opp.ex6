@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class StringTypeChecker implements TypeChecker {
+public class StringTypeChecker extends TypeChecker {
     private static final String STRING_TYPE = "String";
     private final HashMap<String, String> varsToCheck;
     private static final String VALID_VALUE_REGEX = "\"[^\"\\\\]*(?:\\\\.[^\"\\\\]*)*\"";

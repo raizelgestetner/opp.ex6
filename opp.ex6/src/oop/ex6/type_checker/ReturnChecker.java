@@ -5,7 +5,10 @@ import com.sun.jdi.InvalidTypeException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ReturnChecker implements TypeChecker {
+/**
+ * checks if given line is a correct return
+ */
+public class ReturnChecker extends TypeChecker {
     private final String line;
 
     public ReturnChecker(String line) {

@@ -1,2 +1,5 @@
-double number = 0;
-char = number;
+void foo(){
+void foofoo(int a ){
+return;
+}
+}

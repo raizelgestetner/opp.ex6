@@ -1,1 +1,5 @@
-char = 'h'
+void foo (int a ){
+a = 2;
+return;
+int b = 3;
+}

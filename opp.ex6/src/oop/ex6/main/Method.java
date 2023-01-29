@@ -1,11 +1,12 @@
 package oop.ex6.main;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Method {
 
      private String methodName ;
-    private HashMap<String,Variable> methodParameters;
+    private ArrayList<Variable> methodParameters;
     private int methodScope;
     private boolean hasReturn;
 
@@ -16,7 +17,7 @@ public class Method {
      * @param methodName name of method
      * @param methodParameters method parameters
      */
-    public Method(String methodName, HashMap<String,Variable> methodParameters) {
+    public Method(String methodName, ArrayList<Variable> methodParameters) {
         this.methodName = methodName;
         hasReturn = false;
         this.methodParameters = methodParameters;
@@ -27,7 +28,7 @@ public class Method {
      * getter
      * @return arraylist of method parameters
      */
-    public HashMap<String,Variable> getMethodParameters() {
+    public ArrayList<Variable> getMethodParameters() {
         return methodParameters;
     }
 
@@ -63,6 +64,9 @@ public class Method {
      */
     public boolean GetHasReturn(){
         return hasReturn;
+    }
+    public ArrayList<Variable> getMethodParams(){
+        return methodParameters;
     }
 
 }

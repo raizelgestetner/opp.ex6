@@ -8,7 +8,6 @@ import oop.ex6.type_checker.VarNameAlreadyUsed;
 import java.io.*;
 
 public class Sjavac {
-
     private static final String INVALID_FILE_NAME = "Invalid file name";
     private static final int LEGAL_CODE = 0;
     private static final int ILLEGAL_CODE = 1;
@@ -28,6 +27,7 @@ public class Sjavac {
     public static final String SAME_NAME_VAR_MSG = "Vars can't have same name as other declared before";
     public static final String INVALID_METHOD_MSG = "Method name is not valid";
     public static final String END_OF_LINE_MSG = "Illegal end of line";
+    public static final String RETURN_VALUE_IS_ILLEGAL_MSG = "return value is illegal";
 
     public static void main(String[] fileName) {
 
@@ -106,6 +106,9 @@ public class Sjavac {
         catch (GlobalVariableException e){
             System.out.println(ILLEGAL_CODE);
             System.err.println(GLOBAL_VARIABLE_EXCEPTION_MSG);
+        } catch (InvalidReturnException e) {
+            System.out.println(ILLEGAL_CODE);
+            System.err.println(RETURN_VALUE_IS_ILLEGAL_MSG);
         }
     }
 

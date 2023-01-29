@@ -1,10 +1,14 @@
 package oop.ex6.type_checker;
 
+import com.sun.jdi.InvalidTypeException;
+
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-public class IfWhileTypeChecker implements TypeChecker {
+/**
+ *Checks if a given line if a legal if or while block
+ */
+public class IfWhileTypeChecker extends TypeChecker {
     public static final String A_INT_OR_FLOAT_REGEX = "^[+\\-]?\\s*\\d*\\.\\d+\\s*$|^[+\\-]?\\s*\\d+\\" +
             ".\\d*\\s*$|^\\s*\\d+\\s*$";
 
@@ -13,15 +17,27 @@ public class IfWhileTypeChecker implements TypeChecker {
 
     private ArrayList<String> paramNames;
 
+    /**
+     * constructor
+     * @param line to check if is a valid if or while block
+     */
     public IfWhileTypeChecker(String line) {
         this.line = line;
         paramNames = new ArrayList<>();
     }
 
+    /**
+     * getter
+     * @return params names
+     */
     public ArrayList<String> getParamNames() {
         return paramNames;
     }
 
+    /**
+     * checks validity of the word
+     * @throws InvalidTypeException the type if invalid
+     */
     @Override
     public void checkValidity() {
         //todo:  I didn't do this:
@@ -42,7 +58,6 @@ public class IfWhileTypeChecker implements TypeChecker {
                     // that has already been initialized
                     paramNames.add(splitConditions[0]);
                 }
-//            }
         }
     }
 
