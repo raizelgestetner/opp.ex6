@@ -12,13 +12,12 @@ public class Method {
 
 
     /**
-     * constuctor
+     * constructor
      * @param methodName name of method
      * @param methodParameters method parameters
      */
     public Method(String methodName, HashMap<String,Variable> methodParameters) {
         this.methodName = methodName;
-        this.methodScope = methodScope;
         hasReturn = false;
         this.methodParameters = methodParameters;
 
@@ -40,15 +39,28 @@ public class Method {
         return methodName;
     }
 
+    /**
+     * getter for method scope
+     * @return method scope
+     */
     public int getMethodScope() {
         return methodScope;
     }
+
+    /**
+     * sets if method has return
+     */
     public void hasReturn(){
         hasReturn = true;
     }
     public void hasNoReturn(){
         hasReturn = false;
     }
+
+    /**
+     * getter for hasReturn
+     * @return whether method has return or not
+     */
     public boolean GetHasReturn(){
         return hasReturn;
     }

@@ -13,9 +13,9 @@ public class Variable {
 
     /**
      * constructor
-     * @param name
-     * @param type
-     * @param value
+     * @param name name
+     * @param type type of variable
+     * @param value value of variable (if initialized)
      */
     public Variable(String name, String type, String value,int scopeNum,boolean isFinal) {
         this.name = name;
@@ -25,10 +25,18 @@ public class Variable {
         this.isFinal = isFinal;
     }
 
+    /**
+     * getter for isFinal
+     * @return true or false depending on if variable is final
+     */
     public boolean isFinal() {
         return isFinal;
     }
 
+    /**
+     * getter for scope number
+     * @return scope number
+     */
     public int getScopeNum() {
         return scopeNum;
     }
@@ -63,6 +71,10 @@ public class Variable {
         return type;
     }
 
+    /**
+     * getter for value
+     * @return variable value
+     */
     public String getValue() {
         return value;
     }

@@ -36,6 +36,8 @@ public class Parser {
     private static final String INT_TYPE = "int";
     private static final String RETURN_TYPE = "return";
     private static final String FINAL_TYPE = "final";
+    public static final String ASSIGN_VAR_REGEX =
+            "\\s*[a-zA-Z_\\d]+\\s*=\\s*(\"[^\"]*\"|'[^']*'|\\w+[a-zA-Z_\\d]*)\\s*;\\s*$";
 
     private final Pattern intPattern = Pattern.compile(INT_REGEX);
     private final Pattern doublePattern = Pattern.compile(DOUBLE_REGEX);
@@ -81,6 +83,26 @@ public class Parser {
     }
 
 
+    /**
+     * this function reads the file
+     *
+     * @throws IOException
+     * @throws EndOfLineException
+     * @throws StartOfLineException
+     * @throws IllegalMethodFormatException
+     * @throws InvalidTypeException
+     * @throws InvalidIfWhileBlockException
+     * @throws MethodHasNoReturnException
+     * @throws IllegalNestedMethodException
+     * @throws IllegalMethodCallException
+     * @throws VarNameAlreadyUsed
+     * @throws InvalidMethodNameException
+     * @throws InvalidVariableException
+     * @throws UndeclaredMethodException
+     * @throws AlreadyDeclaredFinalException
+     * @throws IllegalNumOfScopesException
+     * @throws GlobalVariableException
+     */
     public void readFile() throws IOException, EndOfLineException, StartOfLineException,
             IllegalMethodFormatException, InvalidTypeException, InvalidIfWhileBlockException, MethodHasNoReturnException, IllegalNestedMethodException, IllegalMethodCallException, VarNameAlreadyUsed, InvalidMethodNameException, InvalidVariableException, UndeclaredMethodException, AlreadyDeclaredFinalException, IllegalNumOfScopesException, GlobalVariableException {
         String line = reader.readLine();
@@ -147,6 +169,7 @@ public class Parser {
 
     /**
      * getter for variables map
+     *
      * @return variables map
      */
     public HashMap<Integer, HashMap<String, Variable>> getVariables() {
@@ -162,7 +185,9 @@ public class Parser {
      * @param line line to check
      */
     private void checkLine(String line) throws IllegalMethodFormatException, InvalidTypeException,
-            InvalidIfWhileBlockException, MethodHasNoReturnException, IllegalNestedMethodException, IllegalMethodCallException, VarNameAlreadyUsed, InvalidMethodNameException, InvalidVariableException, AlreadyDeclaredFinalException {
+            InvalidIfWhileBlockException, MethodHasNoReturnException, IllegalNestedMethodException,
+            IllegalMethodCallException, VarNameAlreadyUsed, InvalidMethodNameException,
+            InvalidVariableException, AlreadyDeclaredFinalException {
         Pattern pattern = Pattern.compile(VALID_LINE_PREFIX);
         Matcher matcher = pattern.matcher(line);
         if (matcher.find()) {
@@ -170,7 +195,8 @@ public class Parser {
             String first_word = matcher.group(1);
             switch (first_word) {
                 case "}":
-                    if (curMethod != null && !(curMethod.GetHasReturn()) && scopeNum == curMethod.getMethodScope()) {
+                    if (curMethod != null && !(curMethod.GetHasReturn()) &&
+                            scopeNum == curMethod.getMethodScope()) {
                         throw new MethodHasNoReturnException();
                     }
                     variables.remove(scopeNum);
@@ -211,7 +237,6 @@ public class Parser {
                     }
                     break;
                 default:
-                    //todo :what is defualt
 
             }
 
@@ -227,10 +252,11 @@ public class Parser {
 
     /**
      * this function checks new variables in the file
-     * @param vartype type of variable
-     * @param line line in file
+     *
+     * @param vartype  type of variable
+     * @param line     line in file
      * @param scopeNum current scope number
-     * @param isFinal boolean value if is final or not
+     * @param isFinal  boolean value if is final or not
      * @throws InvalidTypeException
      * @throws InvalidVariableException
      * @throws VarNameAlreadyUsed
@@ -303,7 +329,7 @@ public class Parser {
         }
 
         Pattern assignVar = Pattern.
-                compile("\\s*[a-zA-Z_\\d]+\\s*=\\s*(\"[^\"]*\"|'[^']*'|\\w+[a-zA-Z_\\d]*)\\s*;\\s*$");
+                compile(ASSIGN_VAR_REGEX);
 
         matcher = assignVar.matcher(line);
         boolean foundType = false;
@@ -332,8 +358,10 @@ public class Parser {
                         Variable RHS = variables.get(i).get(params[1]);
                         if (!RHS.getType().equals(LHS.getType())) {//check if types are legal
                             if (!((RHS.getType().equals(INT_TYPE) &&
-                                    (LHS.getType().equals(DOUBLE_TYPE) || LHS.getType().equals(BOOLEAN_TYPE)))
-                                    || (RHS.getType().equals(DOUBLE_TYPE) && LHS.getType().equals(BOOLEAN_TYPE)))) {
+                                    (LHS.getType().equals(DOUBLE_TYPE) ||
+                                            LHS.getType().equals(BOOLEAN_TYPE)))
+                                    || (RHS.getType().equals(DOUBLE_TYPE) &&
+                                    LHS.getType().equals(BOOLEAN_TYPE)))) {
                                 foundType = false;
                                 break;
                             } else {
@@ -385,6 +413,7 @@ public class Parser {
 
     /**
      * this function checks if method name is valid
+     *
      * @param methodName method name
      * @return true or false
      */
@@ -395,8 +424,9 @@ public class Parser {
 
     /**
      * checks if number of parameters in the method is valid
+     *
      * @param givenParams the given parameters in method call
-     * @param method method
+     * @param method      method
      * @return true or false
      */
     private boolean isNumOfParamsValid(String[] givenParams, Method method) {
@@ -405,6 +435,7 @@ public class Parser {
 
     /**
      * this function checks if the method call is valid
+     *
      * @param line current line in file
      * @throws IllegalMethodCallException if method call is illegal
      */
@@ -418,7 +449,7 @@ public class Parser {
                 Method method = methodsList.get(methodName);
                 String[] givenParams = splitLine[1].split(SPLIT_BY_COMMA);
                 HashMap<String, Variable> methodParameters = method.getMethodParameters();
-                if (!isNumOfParamsValid(givenParams,method)) { //check num of params given is valid
+                if (!isNumOfParamsValid(givenParams, method)) { //check num of params given is valid
                     throw new IllegalMethodCallException();
                 }
                 int curGivenParamIdx = 0;
@@ -426,24 +457,18 @@ public class Parser {
                 for (Variable methodVar : methodParameters.values()) {
                     String methodType = methodVar.getType();
                     boolean nameExists = false;
-                    int numOfVars = variables.size();
                     while (curScopeIdx < variables.size() && !nameExists) {
                         if (!variables.get(curScopeIdx).containsKey(givenParams[curGivenParamIdx])) { //the
                             // cur scope doesn't contain the varName
                             curScopeIdx++;//check next scope
                         } else { //found variable with same name
-
                             Variable foundVar =
                                     variables.get(curScopeIdx).get(givenParams[curGivenParamIdx]);
-
                             String varType = foundVar.getType();
 
                             //check if types are valid, if it isn't will throw exception
-                            if (!methodType.equals(varType)) {
-                                if (!((varType.equals(INT_TYPE) && (methodType.equals(DOUBLE_TYPE) || methodType.equals(
-                                        BOOLEAN_TYPE))) || (varType.equals(DOUBLE_TYPE) && methodType.equals(BOOLEAN_TYPE)))) {
-                                    throw new IllegalMethodCallException();
-                                }
+                            if (!isTypesValid(methodType, varType)) {
+                                throw new IllegalMethodCallException();
                             }
                             nameExists = true;
                         }
@@ -456,18 +481,30 @@ public class Parser {
                     }
                 }
 
-            }
-            else {
-                methodsToFind.add(splitLine[0]);
-
+            } else {
+                methodsToFind.add(methodName);
             }
         }
 
     }
 
     /**
-     * this function checks the parameters based on their type
+     * this function checks if types are valid
      * @param methodType method type
+     * @param varType variable type
+     * @return true or false
+     */
+    private boolean isTypesValid(String methodType, String varType) {
+        return methodType.equals(varType) ||
+                (varType.equals(INT_TYPE) && (methodType.equals(DOUBLE_TYPE) ||
+                        methodType.equals(BOOLEAN_TYPE))) ||
+                (varType.equals(DOUBLE_TYPE) && methodType.equals(BOOLEAN_TYPE));
+    }
+
+    /**
+     * this function checks the parameters based on their type
+     *
+     * @param methodType  method type
      * @param givenParams the given parameters
      * @return true or false
      */
@@ -480,7 +517,8 @@ public class Parser {
         Matcher charMatcher = charPattern.matcher(givenParams);
 
 
-        if (!((methodType.equals(BOOLEAN_TYPE) && (intMatcher.find() || doubleMatcher.find() || boolMatcher.find()))
+        if (!((methodType.equals(BOOLEAN_TYPE) && (intMatcher.find() || doubleMatcher.find() ||
+                boolMatcher.find()))
                 || (methodType.equals(DOUBLE_TYPE) && (doubleMatcher.find() || boolMatcher.find()))
                 || (methodType.equals(INT_TYPE) && intMatcher.find())
                 || (methodType.equals(STRING_TYPE) && stringMatcher.find())
@@ -492,9 +530,10 @@ public class Parser {
 
     /**
      * this function checks if/while blocks
+     *
      * @param line current line in file
      * @throws InvalidIfWhileBlockException if while is invalid
-     * @throws InvalidTypeException wrong type
+     * @throws InvalidTypeException         wrong type
      */
     private void checkIfWhile(String line) throws InvalidIfWhileBlockException, InvalidTypeException {
         Pattern ifWhilePattern = Pattern.compile(VALID_OUTLINE_REGEX_IF_WHILE);
@@ -515,6 +554,7 @@ public class Parser {
 
     /**
      * this function checks if / while block's parameters
+     *
      * @param param parameter to check
      * @throws InvalidTypeException invalid type
      */
@@ -541,6 +581,7 @@ public class Parser {
 
     /**
      * this function checks a method line in file
+     *
      * @param line current line in file
      * @throws InvalidTypeException
      * @throws IllegalMethodFormatException
@@ -548,7 +589,8 @@ public class Parser {
      * @throws InvalidMethodNameException
      */
     private void checkMethodLine(String line) throws
-            InvalidTypeException, IllegalMethodFormatException, IllegalNestedMethodException, InvalidMethodNameException {
+            InvalidTypeException, IllegalMethodFormatException, IllegalNestedMethodException,
+            InvalidMethodNameException {
         if (curMethod != null) {
             throw new IllegalNestedMethodException();
         }
@@ -562,7 +604,7 @@ public class Parser {
             if (matcher.find()) {
                 String method_name = matcher.group(0).split(REGEX_OPEN_PARENTHESIS)[0].strip();
                 method_name = method_name.replaceAll("\\s*void\\s*", "");
-                if (!methodsList.containsKey(method_name)) { //todo check that this is the correct method name
+                if (!methodsList.containsKey(method_name)) {
 
                     MethodChecker methodChecker = new MethodChecker(matcher.group(1), scopeNum,
                             method_name);
